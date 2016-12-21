@@ -29,11 +29,14 @@ done;
 [ -f /opt/boxen/env.sh ] && source /opt/boxen/env.sh
 
 # Add tab completion for many Bash commands
-if which brew > /dev/null && [ -f "$(brew --prefix)/etc/bash_completion" ]; then
-	source "$(brew --prefix)/etc/bash_completion";
-elif [ -f /etc/bash_completion ]; then
-	source /etc/bash_completion;
-fi;
+
+if [ "$OSTYPE" == "darwin15" ]; then
+	if which brew > /dev/null && [ -f "$(brew --prefix)/etc/bash_completion" ]; then
+		source "$(brew --prefix)/etc/bash_completion";
+	elif [ -f /etc/bash_completion ]; then
+		source /etc/bash_completion;
+	fi;
+fi
 
 # Add tab completion for SSH hostnames based on ~/.ssh/config, ignoring wildcards
 [ -e "$HOME/.ssh/config" ] && complete -o "default" -o "nospace" -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2 | tr ' ' '\n')" scp sftp ssh;
@@ -49,19 +52,13 @@ if [ "$OSTYPE" == "darwin15" ]; then
 
 	eval "$(jenv init -)"
 	[[ -s `brew --prefix`/etc/autojump.sh ]] && . `brew --prefix`/etc/autojump.sh
+
 	# Docker machine stuff
 	#eval "$(docker-machine env docker-vm)"
-
 	#MACHINE=docker-vm
 	#KEYFILE="$HOME/.docker/machine/machines/$MACHINE/id_rsa"
 
-
-	# todo: find where brew sets GOROOT
-	#export GOROOT=/opt/boxen/homebrew/Cellar/go/1.6.2/libexec
-
 	export HOMEBREW_GITHUB_API_TOKEN=93669ef6bde9262050c085742b6887e501ad12fb
-
-
 	#export DOCKER_MACHINE_NAME=docker-vm
 fi
 
