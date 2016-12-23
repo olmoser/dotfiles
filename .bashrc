@@ -5,7 +5,10 @@ fi
 
 [ -n "$PS2" ] && source ~/.bash_profile;
 
-source ~/.profile
+if [ -f ~/.profile ]; then
+	source ~/.profile
+fi
+
 source ~/.prompt
 
 GIT_PROMPT_END="\n\[$MAGENTA\]\A \[${BOLD}${BASE00}\]\u@\h > \[$RESET\]"
