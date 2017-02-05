@@ -62,5 +62,9 @@ if [ "$OSTYPE" == "darwin15" ]; then
 	#export DOCKER_MACHINE_NAME=docker-vm
 fi
 
+DISTRO=`cat /etc/*-release | grep DISTRIB_ID | cut -d '=' -f 2`
+if [ "$DISTRO" == "Ubuntu" ]; then 
+	. /usr/share/autojump/autojump.sh
+fi
 
 
