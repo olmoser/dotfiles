@@ -340,3 +340,12 @@ function docker_cleanup(){
 	docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null
 	docker rmi $(docker images --filter dangling=true -q 2>/dev/null) 2>/dev/null
 }
+
+function decode_k8s_secret {
+	namespace=$1
+	secret_name=$2
+	user=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep username | cut -d ':' -f2 | tr -d ' ' | base64 -d`
+	pass=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep password | cut -d ':' -f2 | tr -d ' ' | base64 -d`
+	echo "User: ${user}"
+	echo "Pass: ${pass}"
+}
