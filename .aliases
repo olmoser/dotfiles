@@ -165,3 +165,5 @@ alias awksum="awk '{sum+=\$1} END {print sum}'"
 alias check_glusterfs='for i in `seq 1 8`; do hostname="lxadaot10${i}.at.inside"; echo -n "Checking $hostname..."; check=`ssh $hostname ls -l /glusterfs 2>&1`; [[ "$check" =~ "Transport endpoint is not connected" ]] && echo "${RED} NOT AVAILABLE${RESET}" || echo "${GREEN} OK${RESET}"; done'
 
 alias mysql_tunnel='ssh -L13306:lxadaot101.at.inside:3306 lxadaot101.at.inside'
+
+alias k8s_apiserver_logs="k logs --since=30s -f -n kube-system `k get pods -n kube-system | grep apiserver | awk '{print $1}'`"
