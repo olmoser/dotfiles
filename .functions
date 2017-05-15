@@ -344,8 +344,21 @@ function docker_cleanup(){
 function decode_k8s_secret {
 	namespace=$1
 	secret_name=$2
-	user=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep username | cut -d ':' -f2 | tr -d ' ' | base64 -d`
-	pass=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep password | cut -d ':' -f2 | tr -d ' ' | base64 -d`
-	echo "User: ${user}"
-	echo "Pass: ${pass}"
+	if [[ -z "$namespace" ]] || [[ -z "$secret_name" ]]; then
+		echo "Usage: decode_k8s_secret <namespace> <secret_name>";
+		return 0;
+	fi
+
+	base64_decode="base64 -d"
+	uname=$(uname)
+	if [[ "$uname" == "Darwin" ]]; then
+		base64_decode="base64 -D"
+	fi
+
+	user=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep username | cut -d ':' -f2 | tr -d ' '`
+	pass=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep password | cut -d ':' -f2 | tr -d ' '`
+	user_decoded=`echo ${user} | ${base64_decode}`
+	pass_decoded=`echo ${pass} | ${base64_decode}`
+	echo "User: $user_decoded"
+	echo "Pass: $pass_decoded"
 }
