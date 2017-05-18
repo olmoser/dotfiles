@@ -362,3 +362,51 @@ function decode_k8s_secret {
 	echo "User: $user_decoded"
 	echo "Pass: $pass_decoded"
 }
+
+function on_k8s {
+	command=$1
+	for i in `seq 1 6`; do
+		ssh -t lxk8sop00$i.at.inside $command;
+	done
+}
+
+declare k8s_selected_pod
+declare k8s_selected_ns
+
+function k8s_select_pod {
+	output=`kubectl get namespaces -o jsonpath={.items[*].metadata.name}`
+	read -r -a namespaces<<< "$output"
+	for i in "${!namespaces[@]}"; do 
+		echo "[$i] ${namespaces[i]}" ; 
+	done; 
+	echo "---------------------------------------------"
+	read -p "Please choose namespace: " namespace_index; 
+	echo "---------------------------------------------"
+
+	namespace=${namespaces[namespace_index]}
+
+	echo ""
+	echo "Pods in namespace '${namespace}':"
+	echo ""
+	output=`kubectl get pods --namespace=${namespace} -o jsonpath={.items[*].metadata.name}`;
+	read -r -a pods<<< "$output"
+	for i in "${!pods[@]}"; do 
+		echo "[$i] ${pods[i]}" ; 
+	done; 
+	echo "---------------------------------------------"
+	read -p "Please choose POD: " pod_index ; 
+	echo "---------------------------------------------"
+	k8s_selected_pod=${pods[pod_index]}
+	k8s_selected_ns=$namespace
+}
+
+function k8s_logs {
+	k8s_select_pod
+	kubectl logs -f --tail=100 --namespace=${k8s_selected_ns} ${k8s_selected_pod}
+}
+
+function k8s_exec {
+	command=$1
+	k8s_select_pod
+	kubectl exec -it --namespace=${k8s_selected_ns} ${k8s_selected_pod} $command
+}
