@@ -167,3 +167,5 @@ alias check_glusterfs='for i in `seq 1 8`; do hostname="lxadaot10${i}.at.inside"
 alias mysql_tunnel='ssh -L13306:lxadaot101.at.inside:3306 lxadaot101.at.inside'
 
 alias k8s_apiserver_logs="k logs --since=30s -f -n kube-system `k get pods -n kube-system | grep apiserver | awk '{print $1}'`"
+
+alias es_res_2_csv="jq '.hits.hits[]._source' | jq -s '.' | jq -r '(.[0] | keys_unsorted) as $keys | $keys, map([.[ $keys[] ]])[] | @csv'"
