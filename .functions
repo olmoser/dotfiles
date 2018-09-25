@@ -410,3 +410,7 @@ function k8s_exec {
 	k8s_select_pod
 	kubectl exec -it --namespace=${k8s_selected_ns} ${k8s_selected_pod} $command
 }
+
+function millis_to_date {
+	date -r $(($1 / 1000))
+}

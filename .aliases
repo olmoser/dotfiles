@@ -145,7 +145,6 @@ alias n='ssh nuclearblast'
 alias goprojects='cd ~/Projects'
 alias goprojects='cd ~/Projects/riots'
 
-alias start-redis='redis-server /opt/boxen/homebrew/etc/redis.conf'
 alias vi='vim'
 alias killall_node='kill $(ps -eaf | grep nodejs | grep -v grep | awk "{print $2}" )'
 alias add_vbox_routes='sudo route -n add 10.0.0/16 192.168.59.103'
@@ -153,7 +152,7 @@ alias xmltidy='xmllint -format - | highlight --syntax xml --out-format ansi'
 alias pj='underscore pretty print --color'
 
 alias ssh-docker='docker-machine ssh docker-vm'
-alias k='kubectl'
+#alias k='kubectl'
 
 alias zeppelin_tunnel='ssh -L8081:localhost:`k get svc zeppelin  --template "{{(index .spec.ports 0).nodePort}}"` lxadaot101.at.inside'
 alias zeppelin_tunnel_vlmcaap='ssh -L8080:localhost:`k get svc zeppelin  --template "{{(index .spec.ports 0).nodePort}}"` vlmcaap001.at.inside'
@@ -166,6 +165,38 @@ alias check_glusterfs='for i in `seq 1 8`; do hostname="lxadaot10${i}.at.inside"
 
 alias mysql_tunnel='ssh -L13306:lxadaot101.at.inside:3306 lxadaot101.at.inside'
 
+# todo fix the ``
 #alias k8s_apiserver_logs="k logs --since=30s -f -n kube-system `k get pods -n kube-system | grep apiserver | awk '{print $1}'`"
 
 alias es_res_2_csv="jq '.hits.hits[]._source' | jq -s '.' | jq -r '(.[0] | keys_unsorted) as $keys | $keys, map([.[ $keys[] ]])[] | @csv'"
+
+# exokube-td
+alias b0t='ssh bastion-0.exokube-staging.eu'
+alias w0t='ssh k8s-node-0.exokube-staging.eu'
+alias w1t='ssh k8s-node-1.exokube-staging.eu'
+alias w2t='ssh k8s-node-2.exokube-staging.eu'
+alias w3t='ssh k8s-node-3.exokube-staging.eu'
+alias w4t='ssh k8s-node-4.exokube-staging.eu'
+alias w5t='ssh k8s-node-5.exokube-staging.eu'
+alias w6t='ssh k8s-node-6.exokube-staging.eu'
+alias w7t='ssh k8s-node-7.exokube-staging.eu'
+alias w8t='ssh k8s-node-8.exokube-staging.eu'
+alias w9t='ssh k8s-node-9.exokube-staging.eu'
+alias e0t='ssh k8s-etcd-0.exokube-staging.eu'
+alias e1t='ssh k8s-etcd-1.exokube-staging.eu'
+alias e2t='ssh k8s-etcd-2.exokube-staging.eu'
+alias m0t='ssh k8s-master-0.exokube-staging.eu'
+alias m1t='ssh k8s-master-1.exokube-staging.eu'
+alias n0t='ssh nginx-0.exokube-staging.eu'
+alias n1t='ssh nginx-1.exokube-staging.eu'
+
+# glcoud
+alias gke-pub-ips='gcloud compute instances list | grep tf-gke-staging | awk "{print \$5}"'
+
+# get SSL cert
+alias get-ssl-pubkey='openssl s_client -connect the.host.name:443 | openssl x509 -pubkey -noout'
+
+# get all pods in all namespace
+alias ka='kubectl get pods --all-namespaces'
+
+alias kafka_wipe_all_topics='for  topic in $(kafkacat -L -b localhost:9092 | grep topic | awk "{print $2}" | grep "\"" | tr -d "\"" | grep -v "__consumer"); do kafka-topics --delete --topic $topic --zookeeper localhost:2181; done'
