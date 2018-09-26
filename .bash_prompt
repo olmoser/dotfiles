@@ -59,4 +59,4 @@ KUBE_PS1_PREFIX='['
 KUBE_PS1_SUFFIX=']'
 KUBE_PS1_NS_ENABLE=false
 source ~/.bash-git-prompt/gitprompt.sh
-GIT_PROMPT_END=" \n\[\033[1;34m\]$(date +%H:%M)\[\033[0;0m\] $KUBE_PS  ${bold}λ${reset} "
+GIT_PROMPT_END=" \n\[\033[1;34m\]$(date +%H:%M)\[\033[0;0m\] $KUBE_PS  ${bold}${orange}λ${reset} "
