@@ -50,7 +50,7 @@ if [ "$OSTYPE" == "darwin18" ]; then
 	eval "$(jenv init -)"
 	[ -f `brew --prefix`/etc/profile.d/autojump.sh ] && . `brew --prefix`/etc/profile.d/autojump.sh
 
-	export HOMEBREW_GITHUB_API_TOKEN=`cat .brew_github_token`
+	export HOMEBREW_GITHUB_API_TOKEN=`cat ~/.brew_github_token`
 
 fi
 
@@ -59,3 +59,4 @@ export HOMEBREW_CASK_OPTS="--appdir=/Applications --fontdir=/Library/Fonts"
 source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/path.bash.inc'
 source '/usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/completion.bash.inc'
 
+export PROMPT_COMMAND="$PROMPT_COMMAND; history -a"
