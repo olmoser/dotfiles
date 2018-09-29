@@ -11,19 +11,19 @@ fi;
 
 if tput setaf 1 &> /dev/null; then
 	tput sgr0; # reset colors
-	bold="\001$(tput bold)\002";
-	reset="\001$(tput sgr0)\002";
+	bold="$(tput bold)";
+	reset="$(tput sgr0)";
 	# Solarized colors, taken from http://git.io/solarized-colors.
-	black="\001$(tput setaf 0)\002";
-	blue="\001$(tput setaf 33)\002";
-	cyan="\001$(tput setaf 37)\002";
-	green="\001$(tput setaf 64)\002";
-	orange="\001$(tput setaf 166)\002";
-	purple="\001$(tput setaf 125)\002";
-	red="\001$(tput setaf 124)\002";
-	violet="\001$(tput setaf 61)\002";
-	white="\001$(tput setaf 15)\002";
-	yellow="\001$(tput setaf 136)\002";
+	black="$(tput setaf 0)";
+	blue="$(tput setaf 33)";
+	cyan="$(tput setaf 37)";
+	green="$(tput setaf 64)";
+	orange="$(tput setaf 166)";
+	purple="$(tput setaf 125)";
+	red="$(tput setaf 124)";
+	violet="$(tput setaf 61)";
+	white="$(tput setaf 15)";
+	yellow="$(tput setaf 136)";
 else
 	bold='';
 	reset="\e[0m";
@@ -59,4 +59,4 @@ KUBE_PS1_PREFIX='['
 KUBE_PS1_SUFFIX=']'
 KUBE_PS1_NS_ENABLE=false
 source ~/.bash-git-prompt/gitprompt.sh
-GIT_PROMPT_END=" \n\[\033[1;34m\]$(date +%H:%M)\[\033[0;0m\] $KUBE_PS ${orange}${bold}λ${reset} "
+GIT_PROMPT_END=" \n\[\033[1;34m\]$(date +%H:%M)\[\033[0;0m\] $KUBE_PS \001${orange}\002\001${bold}\002λ\001${reset}\002 "
