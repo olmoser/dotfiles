@@ -53,7 +53,7 @@ else
 	hostStyle="${purple}";
 fi;
 
-source "/usr/local/opt/kube-ps1/share/kube-ps1.sh"
+source ~/.kube-ps1.sh
 KUBE_PS='$(kube_ps1)'
 KUBE_PS1_PREFIX='['
 KUBE_PS1_SUFFIX=']'
