@@ -414,3 +414,45 @@ function k8s_exec {
 function millis_to_date {
 	date -r $(($1 / 1000))
 }
+
+function upload_to_cdn {
+	source=$1
+	bucket=$2
+	if [ -z "$bucket" ] || [ -z "$source" ]; then
+		echo "Usage: upload_to_cdn <SOURCE> <BUCKET> where SOURCE is a directory"
+		echo "Example: upload_to_cdn dist bt-playground"
+		return 1
+	fi
+
+	gsutil rsync -r $source gs://${bucket}
+	gsutil -m acl -r ch -u AllUsers:R gs://${bucket}
+	gsutil web set -m index.html gs://${bucket}
+}
+
+function invalidate_cdn_cache {
+	project=$1
+	url_map=$2
+	host=$3
+	path=$4
+
+	if [ -z "$project" ] || [ -z "$url_map" ] || [ -z "$host" ] || [ -z "$path" ]; then
+		echo "Usage: invalidate_cdn_cache <project> <url-map> <host> <path>"
+		echo "Example: upload_to_cdn tribefire-static-websites tf-frontends-staging playground.staging.tribefire.cloud '/*'"
+		return 1
+	fi
+
+	additional_args=""
+	if [ -n "$INVALIDATE_ASYNC" ]; then 
+		additional_args="--async"
+	fi
+
+
+	gcloud --project $project compute url-maps invalidate-cdn-cache --host=$host --path="$path" $url_map $additional_args
+}
+
+function k8s_terminate_namespace {
+	kubectl proxy 2>&1 > /dev/null &
+	proxy_pid=$!
+	kubectl get ns | grep Terminating | awk '{print $1}' | gxargs  -n1 -- bash -c 'kubectl get ns "$0" -o json | jq "del(.spec.finalizers[0])" > "$0.json"; curl -k -H "Content-Type: application/json" -X PUT --data-binary @"$0.json" "http://127.0.0.1:8001/api/v1/namespaces/$0/finalize" '
+	kill $proxy_pid
+}
