@@ -456,3 +456,7 @@ function k8s_terminate_namespace {
 	kubectl get ns | grep Terminating | awk '{print $1}' | gxargs  -n1 -- bash -c 'kubectl get ns "$0" -o json | jq "del(.spec.finalizers[0])" > "$0.json"; curl -k -H "Content-Type: application/json" -X PUT --data-binary @"$0.json" "http://127.0.0.1:8001/api/v1/namespaces/$0/finalize" '
 	kill $proxy_pid
 }
+
+function generate_ansible_inventory {
+	gcloud compute instances list | grep gke-tfcloud-gke | awk '{print $1, $4}' | xargs -n2 -- bash -c 'echo "$0 ansible_ssh_host=$1"'
+	}
