@@ -200,3 +200,10 @@ alias get-ssl-pubkey='openssl s_client -connect the.host.name:443 | openssl x509
 alias ka='kubectl get pods --all-namespaces'
 
 alias kafka_wipe_all_topics='for  topic in $(kafkacat -L -b localhost:9092 | grep topic | awk "{print $2}" | grep "\"" | tr -d "\"" | grep -v "__consumer"); do kafka-topics --delete --topic $topic --zookeeper localhost:2181; done'
+
+alias kctx='kubectx'
+
+alias yaml2json="ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(ARGF))'"
+
+alias gcloud_seeqnc="gcloud config configurations activate seeqnc"
+alias gcloud_staging="gcloud config configurations activate tf-staging"

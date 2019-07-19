@@ -1,3 +1,5 @@
+#vi:ft=bash
+
 # Simple calculator
 function calc() {
 	local result="";
@@ -424,7 +426,7 @@ function upload_to_cdn {
 		return 1
 	fi
 
-	gsutil rsync -r $source gs://${bucket}
+	gsutil -m rsync -r $source gs://${bucket}
 	gsutil -m acl -r ch -u AllUsers:R gs://${bucket}
 	gsutil web set -m index.html gs://${bucket}
 }
@@ -460,3 +462,70 @@ function k8s_terminate_namespace {
 function generate_ansible_inventory {
 	gcloud compute instances list | grep gke-tfcloud-gke | awk '{print $1, $4}' | xargs -n2 -- bash -c 'echo "$0 ansible_ssh_host=$1"'
 	}
+
+function k8s_templates_pod {
+	read -r -d '' pod <<-'EOF'
+apiVersion: v1
+kind: Pod
+metadata:
+  name: __NAME__
+  labels:
+    app: __NAME__
+spec:
+  containers:
+  - name: __NAME__
+    image: __IMAGE__
+EOF
+
+	echo "$pod"
+}
+
+function k8s_templates_deployment {
+	read -r -d '' deploy <<-'EOF'
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: __NAME__
+  labels:
+    app: __NAME__
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: __NAME__
+  template:
+    metadata:
+      labels:
+        app: __NAME__
+    spec:
+      containers:
+      - name: __NAME__
+        image: __IMAGE__
+        ports:
+        - containerPort: __PORT__
+
+EOF
+	echo "$deploy"
+}
+
+function k8s_templates_service {
+	read -r -d '' svc <<-'EOF'
+kind: Service
+apiVersion: v1
+metadata:
+  name: __NAME__
+spec:
+  selector:
+    app: __NAME__
+  ports:
+  - protocol: TCP
+    port: __PORT__
+    targetPort: __TARGET_PORT__
+
+EOF
+	echo "$svc"
+}
+
+function k8s_terminate_stuck_pods {
+	kubectl get pods --all-namespaces -o wide | grep Terminating | awk '{print $1,$2}' | gxargs -n2 -- /bin/bash -c 'kubectl delete pod --force --grace-period=0 -n "$0" "$1"'
+}
