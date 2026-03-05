@@ -88,3 +88,7 @@ if command -v sk &>/dev/null; then
   done
   unset sk_bindings
 fi
+
+# fzf fuzzy search
+command -v fzf &>/dev/null && eval "$(fzf --bash)"
+
