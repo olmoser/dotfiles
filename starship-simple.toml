@@ -1,0 +1,57 @@
+# Starship prompt configuration
+# https://starship.rs/config/
+
+format = """
+$directory\
+$git_branch\
+$git_status\
+$kubernetes\
+$python\
+$nodejs\
+$cmd_duration\
+$status\
+$line_break\
+$time\
+$character"""
+
+[directory]
+truncation_length = 3
+truncate_to_repo = true
+
+[git_branch]
+format = "[$symbol$branch(:$remote_branch)]($style) "
+
+[git_status]
+format = '([\[$all_status$ahead_behind\]]($style) )'
+
+[kubernetes]
+disabled = false
+format = '[$symbol$context]($style) '
+symbol = "k8s:"
+
+[python]
+format = '[${symbol}${pyenv_prefix}(${version})(\($virtualenv\))]($style) '
+detect_extensions = ["py"]
+detect_files = ["pyproject.toml", "requirements.txt", "setup.py", "Pipfile"]
+
+[nodejs]
+format = "[$symbol($version)]($style) "
+detect_extensions = ["js", "ts"]
+detect_files = ["package.json"]
+
+[cmd_duration]
+min_time = 2_000
+format = "[$duration]($style) "
+
+[status]
+disabled = false
+format = '[$symbol$status]($style) '
+
+[time]
+disabled = false
+format = '[$time]($style) '
+time_format = "%H:%M"
+
+[character]
+success_symbol = "[λ](bold yellow)"
+error_symbol = "[λ](bold red)"

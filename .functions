@@ -1,531 +1,320 @@
-#vi:ft=bash
+#!/usr/bin/env bash
+# shellcheck disable=SC2059,SC2086
 
 # Simple calculator
-function calc() {
-	local result="";
-	result="$(printf "scale=10;$*\n" | bc --mathlib | tr -d '\\\n')";
-	#                       └─ default (when `--mathlib` is used) is 20
-	#
-	if [[ "$result" == *.* ]]; then
-		# improve the output for decimal numbers
-		printf "$result" |
-		sed -e 's/^\./0./'        `# add "0" for cases like ".5"` \
-		    -e 's/^-\./-0./'      `# add "0" for cases like "-.5"`\
-		    -e 's/0*$//;s/\.$//';  # remove trailing zeros
-	else
-		printf "$result";
-	fi;
-	printf "\n";
+calc() {
+  local result=""
+  result="$(printf "scale=10;%s\n" "$*" | bc --mathlib | tr -d '\\\n')"
+  if [[ "$result" == *.* ]]; then
+    printf "%s" "$result" |
+      sed -e 's/^\./0./' \
+          -e 's/^-\./-0./' \
+          -e 's/0*$//;s/\.$//'
+  else
+    printf "%s" "$result"
+  fi
+  printf "\n"
 }
 
 # Create a new directory and enter it
-function mkd() {
-	mkdir -p "$@" && cd "$@";
+mkd() {
+  mkdir -p "$@" && cd "$@" || return
 }
 
-# Change working directory to the top-most Finder window location
-function cdf() { # short for `cdfinder`
-	cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')";
-}
+# Change working directory to the top-most Finder window location (macOS only)
+if [[ "$(uname -s)" == "Darwin" ]]; then
+  cdf() {
+    cd "$(osascript -e 'tell app "Finder" to POSIX path of (insertion location as alias)')" || return
+  }
+fi
 
-# Create a .tar.gz archive, using `zopfli`, `pigz` or `gzip` for compression
-function targz() {
-	local tmpFile="${@%/}.tar";
-	tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1;
+# Create a .tar.gz archive, using zopfli, pigz, or gzip for compression
+targz() {
+  local tmpFile="${*%/}.tar"
+  tar -cvf "${tmpFile}" --exclude=".DS_Store" "${@}" || return 1
 
-	size=$(
-		stat -f"%z" "${tmpFile}" 2> /dev/null; # OS X `stat`
-		stat -c"%s" "${tmpFile}" 2> /dev/null # GNU `stat`
-	);
+  local size
+  size=$(
+    stat -f"%z" "${tmpFile}" 2>/dev/null  # macOS stat
+    stat -c"%s" "${tmpFile}" 2>/dev/null  # GNU stat
+  )
 
-	local cmd="";
-	if (( size < 52428800 )) && hash zopfli 2> /dev/null; then
-		# the .tar file is smaller than 50 MB and Zopfli is available; use it
-		cmd="zopfli";
-	else
-		if hash pigz 2> /dev/null; then
-			cmd="pigz";
-		else
-			cmd="gzip";
-		fi;
-	fi;
+  local cmd=""
+  if ((size < 52428800)) && hash zopfli 2>/dev/null; then
+    cmd="zopfli"
+  elif hash pigz 2>/dev/null; then
+    cmd="pigz"
+  else
+    cmd="gzip"
+  fi
 
-	echo "Compressing .tar using \`${cmd}\`…";
-	"${cmd}" -v "${tmpFile}" || return 1;
-	[ -f "${tmpFile}" ] && rm "${tmpFile}";
-	echo "${tmpFile}.gz created successfully.";
+  echo "Compressing .tar using \`${cmd}\`..."
+  "${cmd}" -v "${tmpFile}" || return 1
+  [ -f "${tmpFile}" ] && rm "${tmpFile}"
+  echo "${tmpFile}.gz created successfully."
 }
 
 # Determine size of a file or total size of a directory
-function fs() {
-	if du -b /dev/null > /dev/null 2>&1; then
-		local arg=-sbh;
-	else
-		local arg=-sh;
-	fi
-	if [[ -n "$@" ]]; then
-		du $arg -- "$@";
-	else
-		du $arg .[^.]* *;
-	fi;
+fs() {
+  if du -b /dev/null >/dev/null 2>&1; then
+    local arg=-sbh
+  else
+    local arg=-sh
+  fi
+  if [[ -n "$*" ]]; then
+    du $arg -- "$@"
+  else
+    du $arg .[^.]* ./*
+  fi
 }
 
-# Use Git’s colored diff when available
-hash git &>/dev/null;
-if [ $? -eq 0 ]; then
-	function diff() {
-		git diff --no-index --color-words "$@";
-	}
-fi;
+# Use Git's colored diff when available
+if hash git &>/dev/null; then
+  diff() {
+    git diff --no-index --color-words "$@"
+  }
+fi
 
 # Create a data URL from a file
-function dataurl() {
-	local mimeType=$(file -b --mime-type "$1");
-	if [[ $mimeType == text/* ]]; then
-		mimeType="${mimeType};charset=utf-8";
-	fi
-	echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')";
-}
-
-# Create a git.io short URL
-function gitio() {
-	if [ -z "${1}" -o -z "${2}" ]; then
-		echo "Usage: \`gitio slug url\`";
-		return 1;
-	fi;
-	curl -i http://git.io/ -F "url=${2}" -F "code=${1}";
-}
-
-# Start an HTTP server from a directory, optionally specifying the port
-function server() {
-	local port="${1:-8000}";
-	sleep 1 && open "http://localhost:${port}/" &
-	# Set the default Content-Type to `text/plain` instead of `application/octet-stream`
-	# And serve everything as UTF-8 (although not technically correct, this doesn’t break anything for binary files)
-	python -c $'import SimpleHTTPServer;\nmap = SimpleHTTPServer.SimpleHTTPRequestHandler.extensions_map;\nmap[""] = "text/plain";\nfor key, value in map.items():\n\tmap[key] = value + ";charset=UTF-8";\nSimpleHTTPServer.test();' "$port";
-}
-
-# Start a PHP server from a directory, optionally specifying the port
-# (Requires PHP 5.4.0+.)
-function phpserver() {
-	local port="${1:-4000}";
-	local ip=$(ipconfig getifaddr en1);
-	sleep 1 && open "http://${ip}:${port}/" &
-	php -S "${ip}:${port}";
+dataurl() {
+  local mimeType
+  mimeType=$(file -b --mime-type "$1")
+  if [[ $mimeType == text/* ]]; then
+    mimeType="${mimeType};charset=utf-8"
+  fi
+  echo "data:${mimeType};base64,$(openssl base64 -in "$1" | tr -d '\n')"
 }
 
 # Compare original and gzipped file size
-function gz() {
-	local origsize=$(wc -c < "$1");
-	local gzipsize=$(gzip -c "$1" | wc -c);
-	local ratio=$(echo "$gzipsize * 100 / $origsize" | bc -l);
-	printf "orig: %d bytes\n" "$origsize";
-	printf "gzip: %d bytes (%2.2f%%)\n" "$gzipsize" "$ratio";
+gz() {
+  local origsize gzipsize ratio
+  origsize=$(wc -c <"$1")
+  gzipsize=$(gzip -c "$1" | wc -c)
+  ratio=$(echo "$gzipsize * 100 / $origsize" | bc -l)
+  printf "orig: %d bytes\n" "$origsize"
+  printf "gzip: %d bytes (%2.2f%%)\n" "$gzipsize" "$ratio"
 }
 
-# Syntax-highlight JSON strings or files
-# Usage: `json '{"foo":42}'` or `echo '{"foo":42}' | json`
-function json() {
-	if [ -t 0 ]; then # argument
-		python -mjson.tool <<< "$*" | pygmentize -l javascript;
-	else # pipe
-		python -mjson.tool | pygmentize -l javascript;
-	fi;
+# Pretty-print JSON using jq (with bat highlighting if available)
+json() {
+  if [ -t 0 ]; then
+    if command -v bat &>/dev/null; then
+      jq '.' <<<"$*" | bat --language json --paging=never
+    else
+      jq '.' <<<"$*"
+    fi
+  else
+    if command -v bat &>/dev/null; then
+      jq '.' | bat --language json --paging=never
+    else
+      jq '.'
+    fi
+  fi
 }
 
-# Run `dig` and display the most useful info
-function digga() {
-	dig +nocmd "$1" any +multiline +noall +answer;
+# Run dig and display the most useful info
+digga() {
+  dig +nocmd "$1" any +multiline +noall +answer
 }
 
 # UTF-8-encode a string of Unicode symbols
-function escape() {
-	printf "\\\x%s" $(printf "$@" | xxd -p -c1 -u);
-	# print a newline unless we’re piping the output to another program
-	if [ -t 1 ]; then
-		echo ""; # newline
-	fi;
+escape() {
+  # shellcheck disable=SC2046
+  printf "\\\x%s" $(printf "$@" | xxd -p -c1 -u)
+  if [ -t 1 ]; then
+    echo ""
+  fi
 }
 
 # Decode \x{ABCD}-style Unicode escape sequences
-function unidecode() {
-	perl -e "binmode(STDOUT, ':utf8'); print \"$@\"";
-	# print a newline unless we’re piping the output to another program
-	if [ -t 1 ]; then
-		echo ""; # newline
-	fi;
+unidecode() {
+  perl -e "binmode(STDOUT, ':utf8'); print \"$*\""
+  if [ -t 1 ]; then
+    echo ""
+  fi
 }
 
-# Get a character’s Unicode code point
-function codepoint() {
-	perl -e "use utf8; print sprintf('U+%04X', ord(\"$@\"))";
-	# print a newline unless we’re piping the output to another program
-	if [ -t 1 ]; then
-		echo ""; # newline
-	fi;
+# Get a character's Unicode code point
+codepoint() {
+  perl -e "use utf8; print sprintf('U+%04X', ord(\"$*\"))"
+  if [ -t 1 ]; then
+    echo ""
+  fi
 }
 
-# Show all the names (CNs and SANs) listed in the SSL certificate
-# for a given domain
-function getcertnames() {
-	if [ -z "${1}" ]; then
-		echo "ERROR: No domain specified.";
-		return 1;
-	fi;
+# Show all the names (CNs and SANs) listed in the SSL certificate for a given domain
+getcertnames() {
+  if [ -z "${1}" ]; then
+    echo "ERROR: No domain specified."
+    return 1
+  fi
 
-	local domain="${1}";
-	echo "Testing ${domain}…";
-	echo ""; # newline
+  local domain="${1}"
+  echo "Testing ${domain}..."
+  echo ""
 
-	local tmp=$(echo -e "GET / HTTP/1.0\nEOT" \
-		| openssl s_client -connect "${domain}:443" -servername "${domain}" 2>&1);
+  local tmp
+  tmp=$(echo -e "GET / HTTP/1.0\nEOT" \
+    | openssl s_client -connect "${domain}:443" -servername "${domain}" 2>&1)
 
-	if [[ "${tmp}" = *"-----BEGIN CERTIFICATE-----"* ]]; then
-		local certText=$(echo "${tmp}" \
-			| openssl x509 -text -certopt "no_aux, no_header, no_issuer, no_pubkey, \
-			no_serial, no_sigdump, no_signame, no_validity, no_version");
-		echo "Common Name:";
-		echo ""; # newline
-		echo "${certText}" | grep "Subject:" | sed -e "s/^.*CN=//" | sed -e "s/\/emailAddress=.*//";
-		echo ""; # newline
-		echo "Subject Alternative Name(s):";
-		echo ""; # newline
-		echo "${certText}" | grep -A 1 "Subject Alternative Name:" \
-			| sed -e "2s/DNS://g" -e "s/ //g" | tr "," "\n" | tail -n +2;
-		return 0;
-	else
-		echo "ERROR: Certificate not found.";
-		return 1;
-	fi;
+  if [[ "${tmp}" == *"-----BEGIN CERTIFICATE-----"* ]]; then
+    local certText
+    certText=$(echo "${tmp}" \
+      | openssl x509 -text -certopt "no_aux, no_header, no_issuer, no_pubkey, \
+      no_serial, no_sigdump, no_signame, no_validity, no_version")
+    echo "Common Name:"
+    echo ""
+    echo "${certText}" | grep "Subject:" | sed -e "s/^.*CN=//" | sed -e "s/\/emailAddress=.*//"
+    echo ""
+    echo "Subject Alternative Name(s):"
+    echo ""
+    echo "${certText}" | grep -A 1 "Subject Alternative Name:" \
+      | sed -e "2s/DNS://g" -e "s/ //g" | tr "," "\n" | tail -n +2
+    return 0
+  else
+    echo "ERROR: Certificate not found."
+    return 1
+  fi
 }
 
-# `s` with no arguments opens the current directory in Sublime Text, otherwise
-# opens the given location
-function s() {
-	if [ $# -eq 0 ]; then
-		subl .;
-	else
-		subl "$@";
-	fi;
+# Open the current directory or given path in Vim
+v() {
+  if [ $# -eq 0 ]; then
+    vim .
+  else
+    vim "$@"
+  fi
 }
 
-# `a` with no arguments opens the current directory in Atom Editor, otherwise
-# opens the given location
-function a() {
-	if [ $# -eq 0 ]; then
-		atom .;
-	else
-		atom "$@";
-	fi;
+# Open the current directory or given path
+o() {
+  if [ $# -eq 0 ]; then
+    open .
+  else
+    open "$@"
+  fi
 }
 
-# `v` with no arguments opens the current directory in Vim, otherwise opens the
-# given location
-function v() {
-	if [ $# -eq 0 ]; then
-		vim .;
-	else
-		vim "$@";
-	fi;
+# tree with hidden files, color, ignoring .git, directories first
+tre() {
+  tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX
 }
 
-# `o` with no arguments opens the current directory, otherwise opens the given
-# location
-function o() {
-	if [ $# -eq 0 ]; then
-		open .;
-	else
-		open "$@";
-	fi;
+# Docker cleanup: remove stopped containers and dangling images
+dcleanup() {
+  docker rm -v "$(docker ps --filter status=exited -q 2>/dev/null)" 2>/dev/null
+  docker rmi "$(docker images --filter dangling=true -q 2>/dev/null)" 2>/dev/null
 }
 
-# `tre` is a shorthand for `tree` with hidden files and color enabled, ignoring
-# the `.git` directory, listing directories first. The output gets piped into
-# `less` with options to preserve color and line numbers, unless the output is
-# small enough for one screen.
-function tre() {
-	tree -aC -I '.git|node_modules|bower_components' --dirsfirst "$@" | less -FRNX;
+# Decode a Kubernetes secret's username and password
+decode_k8s_secret() {
+  local namespace=$1
+  local secret_name=$2
+  if [[ -z "$namespace" ]] || [[ -z "$secret_name" ]]; then
+    echo "Usage: decode_k8s_secret <namespace> <secret_name>"
+    return 1
+  fi
+
+  local base64_decode="base64 -d"
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    base64_decode="base64 -D"
+  fi
+
+  local user pass user_decoded pass_decoded
+  user=$(kubectl get secret -n "${namespace}" "${secret_name}" -o yaml | grep username | cut -d ':' -f2 | tr -d ' ')
+  pass=$(kubectl get secret -n "${namespace}" "${secret_name}" -o yaml | grep password | cut -d ':' -f2 | tr -d ' ')
+  user_decoded=$(echo "${user}" | ${base64_decode})
+  pass_decoded=$(echo "${pass}" | ${base64_decode})
+  echo "User: ${user_decoded}"
+  echo "Pass: ${pass_decoded}"
 }
 
-function copy_lxada {
-	if [[ -z $1 ]]; then
-		echo "Usage: copy_lxada <FILES> <REMOTE_DIR>";
-		return;
-	fi
-
-	dest_dir=${@:$#}
-	files=${*%${!#}}
-	echo "Files: $files"
-	echo "Destination: $dest_dir"
-	for i in `seq 1 8`; do hostname="lxadaot10${i}.at.inside"; scp $files $hostname:$dest_dir; done
+# Convert milliseconds timestamp to date
+millis_to_date() {
+  date -r $(($1 / 1000))
 }
 
-function on_lxada {
-	if [[ -z $1 ]]; then
-		echo "Usage: on_lxada <COMMAND>";
-		return;
-	fi
-
-	for i in `seq 1 8`; do hostname="lxadaot10${i}.at.inside"; ssh -t $hostname $1; done
+# Parse traceparent from base64-encoded string
+parse_traceparent_base64() {
+  echo "$1" | base64 -D | jq -r '.traceparent' | cut -d '-' -f 2
 }
 
-function on_vlmcaap {
-	if [[ -z $1 ]]; then
-		echo "Usage: on_vlmcaap <COMMAND>";
-		return;
-	fi
-
-	for i in `seq 1 3`; do hostname="vlmcaap00${i}.at.inside"; ssh -t $hostname $1; done
+# Combine PDF files using Ghostscript
+cpdf() {
+  gs -q -dNOPAUSE -dBATCH -sDEVICE=pdfwrite -sOutputFile="$1" "${@:2}"
 }
 
-function dcleanup {
-	docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null
-	docker rmi $(docker images --filter dangling=true -q 2>/dev/null) 2>/dev/null
+# GeoIP lookup
+gip() {
+  curl "https://json.geoiplookup.io/$1" 2>/dev/null
 }
 
+# URL-encode special characters per RFC 3986
+urlencode() {
+  local LC_ALL=C
+  local c i n=${#1}
+  for ((i = 0; i < n; i++)); do
+    c="${1:i:1}"
+    case "$c" in
+      [-_.~A-Za-z0-9]) printf '%s' "$c" ;;
+      *) printf '%%%02X' "'$c" ;;
+    esac
+  done
+  echo
+}
 
-function docker_forward {
-    port=$1
-    forward_port_command="ssh -i $KEYFILE -f -N -L $port:localhost:$port docker@$(docker-machine ip $MACHINE)"
-	printf "${ORANGE}Executing forward: $forward_port_command\n${RESET}";
+# Sum a column of numbers from stdin
+function awksum {
+  awk '{sum+=$1} END {print sum}'
+}
 
-    existing_forward=$(ps ax | grep "$forward_port_command" | grep -v grep)
+# Delete local branches whose remote tracking branch is gone
+git-cleanup-branches() {
+  git branch -vv | grep 'origin/.*: gone]' | awk '{print $1}' | xargs git branch -D
+}
 
-    if [ -z "$existing_forward" ]; then
-        eval $forward_port_command
-		if [ $? -eq 0 ]; then
-			printf "${GREEN}Successfully created port forward for port '$port'\n${RESET}"
-		else
-			printf "${RED}Could not create port forward: $? \n${RESET}"
-		fi
-	else
-		printf "${ORANGE}Forward to port '$port' already exists: $existing_forward\n${RESET}"
+# Git worktree helper: create new worktree with branch
+gwt() {
+  local name="$1"
+  local type="${2:-feat}"
+  local base="${3:-dev}"
+  local dir
+  dir="$(basename "$PWD")"
+  local dest_dir="../${dir}__${name}"
+  local branch="${type}/${name}"
+  local existing
+  existing=$(git branch -l "$branch")
+
+  if [[ -z "$name" ]]; then
+    echo "Usage: gwt <name> [type=feat] [base=dev]"
+    return 1
+  fi
+
+  if [[ -n "$existing" ]]; then
+    echo "Branch \"${branch}\" already exists."
+    read -rp "Delete it and recreate? [y/N] " confirm
+    if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+      git branch -D "${branch}"
+    else
+      echo "Aborting."
+      return 1
     fi
+  fi
+
+  git worktree add -b "${type}/${name}" "${dest_dir}" "$base"
+  git worktree list
+  cp -r .claude .env ./*-sa.json "${dest_dir}" 2>/dev/null || true
+  cd "${dest_dir}" || return
 }
 
-function docker_registry {
-	action=$1
-	run_new_registry_cmd="docker run -d -p 5000:5000 --restart=always --name registry registry:2"
-	existing_registry=$(docker ps -a | grep registry:2 | awk '{print $1}')
-	run_existing_registry_cmd="docker start $existing_registry"
-	running_registry=$(docker ps | grep registry:2 | awk '{print $1}')
-	stop_registry_cmd="docker stop $running_registry"
- 	case "$action" in
-		"start") 
-			if [ -z "$running_registry" ]; then
-				echo "Starting docker registry..."
-				if [ -z "$existing_registry" ]; then
-					eval $run_new_registry_command
-				else
-					echo "Using existing container: $existing_registry"
-					eval $run_existing_registry_cmd
-				fi
-			else
-				echo "Docker registry already running. Container ID: $running_registry"
-			fi
-			;;
-		"stop")
-			if [ -z "$existing_registry" ]; then
-				echo "Docker registry not running. Doing nothing"
-			else
-				echo "Shutting down docker registry. Container ID: $running_registry"
-				eval $stop_registry_cmd
-			fi
-			;;
-		*)
-			echo "Usage: docker_registry start|stop|check"
-			;;
-	esac
-}
-
-function docker_cleanup(){
-	docker rm -v $(docker ps --filter status=exited -q 2>/dev/null) 2>/dev/null
-	docker rmi $(docker images --filter dangling=true -q 2>/dev/null) 2>/dev/null
-}
-
-function decode_k8s_secret {
-	namespace=$1
-	secret_name=$2
-	if [[ -z "$namespace" ]] || [[ -z "$secret_name" ]]; then
-		echo "Usage: decode_k8s_secret <namespace> <secret_name>";
-		return 0;
-	fi
-
-	base64_decode="base64 -d"
-	uname=$(uname)
-	if [[ "$uname" == "Darwin" ]]; then
-		base64_decode="base64 -D"
-	fi
-
-	user=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep username | cut -d ':' -f2 | tr -d ' '`
-	pass=`kubectl get secret -n ${namespace} ${secret_name} -o yaml | grep password | cut -d ':' -f2 | tr -d ' '`
-	user_decoded=`echo ${user} | ${base64_decode}`
-	pass_decoded=`echo ${pass} | ${base64_decode}`
-	echo "User: $user_decoded"
-	echo "Pass: $pass_decoded"
-}
-
-function on_k8s {
-	command=$1
-	for i in `seq 1 6`; do
-		ssh -t lxk8sop00$i.at.inside $command;
-	done
-}
-
-declare k8s_selected_pod
-declare k8s_selected_ns
-
-function k8s_select_pod {
-	output=`kubectl get namespaces -o jsonpath={.items[*].metadata.name}`
-	read -r -a namespaces<<< "$output"
-	for i in "${!namespaces[@]}"; do 
-		echo "[$i] ${namespaces[i]}" ; 
-	done; 
-	echo "---------------------------------------------"
-	read -p "Please choose namespace: " namespace_index; 
-	echo "---------------------------------------------"
-
-	namespace=${namespaces[namespace_index]}
-
-	echo ""
-	echo "Pods in namespace '${namespace}':"
-	echo ""
-	output=`kubectl get pods --namespace=${namespace} -o jsonpath={.items[*].metadata.name}`;
-	read -r -a pods<<< "$output"
-	for i in "${!pods[@]}"; do 
-		echo "[$i] ${pods[i]}" ; 
-	done; 
-	echo "---------------------------------------------"
-	read -p "Please choose POD: " pod_index ; 
-	echo "---------------------------------------------"
-	k8s_selected_pod=${pods[pod_index]}
-	k8s_selected_ns=$namespace
-}
-
-function k8s_logs {
-	k8s_select_pod
-	kubectl logs -f --tail=100 --namespace=${k8s_selected_ns} ${k8s_selected_pod}
-}
-
-function k8s_exec {
-	command=$1
-	k8s_select_pod
-	kubectl exec -it --namespace=${k8s_selected_ns} ${k8s_selected_pod} $command
-}
-
-function millis_to_date {
-	date -r $(($1 / 1000))
-}
-
-function upload_to_cdn {
-	source=$1
-	bucket=$2
-	if [ -z "$bucket" ] || [ -z "$source" ]; then
-		echo "Usage: upload_to_cdn <SOURCE> <BUCKET> where SOURCE is a directory"
-		echo "Example: upload_to_cdn dist bt-playground"
-		return 1
-	fi
-
-	gsutil -m rsync -r $source gs://${bucket}
-	gsutil -m acl -r ch -u AllUsers:R gs://${bucket}
-	gsutil web set -m index.html gs://${bucket}
-}
-
-function invalidate_cdn_cache {
-	project=$1
-	url_map=$2
-	host=$3
-	path=$4
-
-	if [ -z "$project" ] || [ -z "$url_map" ] || [ -z "$host" ] || [ -z "$path" ]; then
-		echo "Usage: invalidate_cdn_cache <project> <url-map> <host> <path>"
-		echo "Example: upload_to_cdn tribefire-static-websites tf-frontends-staging playground.staging.tribefire.cloud '/*'"
-		return 1
-	fi
-
-	additional_args=""
-	if [ -n "$INVALIDATE_ASYNC" ]; then 
-		additional_args="--async"
-	fi
-
-
-	gcloud --project $project compute url-maps invalidate-cdn-cache --host=$host --path="$path" $url_map $additional_args
-}
-
-function k8s_terminate_namespace {
-	kubectl proxy 2>&1 > /dev/null &
-	proxy_pid=$!
-	kubectl get ns | grep Terminating | awk '{print $1}' | gxargs  -n1 -- bash -c 'kubectl get ns "$0" -o json | jq "del(.spec.finalizers[0])" > "$0.json"; curl -k -H "Content-Type: application/json" -X PUT --data-binary @"$0.json" "http://127.0.0.1:8001/api/v1/namespaces/$0/finalize" '
-	kill $proxy_pid
-}
-
-function generate_ansible_inventory {
-	gcloud compute instances list | grep gke-tfcloud-gke | awk '{print $1, $4}' | xargs -n2 -- bash -c 'echo "$0 ansible_ssh_host=$1"'
-	}
-
-function k8s_templates_pod {
-	read -r -d '' pod <<-'EOF'
-apiVersion: v1
-kind: Pod
-metadata:
-  name: __NAME__
-  labels:
-    app: __NAME__
-spec:
-  containers:
-  - name: __NAME__
-    image: __IMAGE__
-EOF
-
-	echo "$pod"
-}
-
-function k8s_templates_deployment {
-	read -r -d '' deploy <<-'EOF'
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: __NAME__
-  labels:
-    app: __NAME__
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: __NAME__
-  template:
-    metadata:
-      labels:
-        app: __NAME__
-    spec:
-      containers:
-      - name: __NAME__
-        image: __IMAGE__
-        ports:
-        - containerPort: __PORT__
-
-EOF
-	echo "$deploy"
-}
-
-function k8s_templates_service {
-	read -r -d '' svc <<-'EOF'
-kind: Service
-apiVersion: v1
-metadata:
-  name: __NAME__
-spec:
-  selector:
-    app: __NAME__
-  ports:
-  - protocol: TCP
-    port: __PORT__
-    targetPort: __TARGET_PORT__
-
-EOF
-	echo "$svc"
-}
-
-function k8s_terminate_stuck_pods {
-	kubectl get pods --all-namespaces -o wide | grep Terminating | awk '{print $1,$2}' | gxargs -n2 -- /bin/bash -c 'kubectl delete pod --force --grace-period=0 -n "$0" "$1"'
+# Git worktree helper: remove a worktree
+gwr() {
+  local name="$1"
+  read -rp "Delete worktree ${name}? [y/N] " confirm
+  if [[ "${confirm}" =~ ^[Yy]$ ]]; then
+    git worktree remove "$name"
+  else
+    echo "Aborting."
+    return 1
+  fi
 }
