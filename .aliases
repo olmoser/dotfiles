@@ -28,17 +28,17 @@ if command -v eza &>/dev/null; then
         local flags="${arg#-}"
         local i
         for ((i = 0; i < ${#flags}; i++)); do
-          case "${flags:i:1}" in
+          case "${flags:$i:1}" in
             t) args+=(--sort=modified) ;;
             S) args+=(--sort=size) ;;
             r) args+=(--reverse) ;;
             l) args+=(-l) ;;
             a) args+=(-a) ;;
             h) args+=(-h) ;;
-            s) args+=(-s) ;;  # eza: show file size
+            s) ;;  # eza shows sizes by default in long mode
             F) args+=(--classify) ;;
             R) args+=(--recurse) ;;
-            *) args+=("-${flags:i:1}") ;;
+            *) args+=("-${flags:$i:1}") ;;
           esac
         done
       else

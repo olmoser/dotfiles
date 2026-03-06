@@ -81,11 +81,14 @@ BREW_PACKAGES=(
   pnpm
   uv
   tmux
+  neovim
   difftastic
   lazygit
   lazydocker
   dust      # modern du
   xh        # modern httpie/curl
+  zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
 BREW_CASKS=(
@@ -440,10 +443,13 @@ create_symlinks() {
   # Common symlinks (both platforms)
   symlink "${DOTFILES_DIR}/.bashrc"       "${HOME}/.bashrc"
   symlink "${DOTFILES_DIR}/.bash_profile" "${HOME}/.bash_profile"
+  symlink "${DOTFILES_DIR}/.zshrc"        "${HOME}/.zshrc"
+  symlink "${DOTFILES_DIR}/.zprofile"     "${HOME}/.zprofile"
   symlink "${DOTFILES_DIR}/.aliases"      "${HOME}/.aliases"
   symlink "${DOTFILES_DIR}/.exports"      "${HOME}/.exports"
   symlink "${DOTFILES_DIR}/.functions"    "${HOME}/.functions"
   symlink "${DOTFILES_DIR}/.vimrc"        "${HOME}/.vimrc"
+  symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"
 
   # Ghostty config (platform-dependent path)
@@ -497,7 +503,7 @@ main() {
   ok "Package installation complete"
   ok "Symlinks created (backups in ${BACKUP_DIR} if any existed)"
   echo ""
-  info "Restart your shell or run: source ~/.bash_profile"
+  info "Restart your shell or run: source ~/.bash_profile (bash) / source ~/.zshrc (zsh)"
   if [ "$DRY_RUN" = "true" ]; then
     warn "This was a dry run. Re-run without DRY_RUN=true to apply changes."
   fi

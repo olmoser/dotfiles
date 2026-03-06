@@ -42,23 +42,21 @@ truncate_to_repo = true
 
 [git_branch]
 symbol = ""
-style = "bg:color_aqua"
-format = '[[\[$symbol $branch ](fg:color_fg0 bg:color_aqua)]($style)'
+#style = "fg:white"
+format = '[[\[$symbol $branch ](fg:white)]($style)'
 truncation_length = 24
 
 [git_status]
-style = "bg:color_aqua"
-format = '[[($all_status $ahead_behind )]()]($style)'
+format = '[[($all_status $ahead_behind )](fg:yellow)]($style)'
 
 [git_state]
-style = "bg:color_aqua"
 format = '[[ $state( $progress_current/$progress_total) ]()]($style)'
 
 [git_metrics]
 disabled = false
 added_style = "fg:yellow"
 deleted_style = "fg:red"
-format = '[[+$added]($added_style)/[-$deleted]($deleted_style)\] ]()'
+format = '[[+$added]($added_style)/[-$deleted]($deleted_style)\] ](fg:white)'
 
 [kubernetes]
 symbol = "󱃾"
@@ -89,9 +87,16 @@ min_time = 2000
 style = "bg:color_bg3"
 format = '[[  $duration ](fg:color_fg0 bg:color_aqua)]($style)'
 
+#[status]
+#disabled = false
+#format = '[$symbol$status]($style) '
+
 [status]
 disabled = false
-format = '[$symbol$status]($style) '
+style = "bg:color_bg4"
+format = '[[ ✖ $status ](fg:red)]($style)'
+map_symbol = true
+recognize_signal_code = true
 
 [time]
 disabled = false
