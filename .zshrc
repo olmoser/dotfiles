@@ -15,6 +15,14 @@ setopt CORRECT            # Autocorrect typos in cd paths
 setopt AUTO_CD            # cd into directories by typing the name
 setopt EXTENDED_GLOB      # Extended globbing (#, ~, ^ operators)
 
+# --- Keybindings ---
+bindkey -e  # Emacs mode (Ctrl-A, Ctrl-E, Ctrl-K, etc.)
+
+# Home / End / Delete keys (terminal-aware via terminfo)
+[[ -n "${terminfo[khome]}" ]] && bindkey "${terminfo[khome]}" beginning-of-line
+[[ -n "${terminfo[kend]}"  ]] && bindkey "${terminfo[kend]}"  end-of-line
+[[ -n "${terminfo[kdch1]}" ]] && bindkey "${terminfo[kdch1]}" delete-char
+
 # --- Completion system ---
 autoload -Uz compinit && compinit
 
