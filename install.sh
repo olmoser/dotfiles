@@ -360,6 +360,28 @@ install_ubuntu_packages() {
   fi
 }
 
+# --- Autojump -> Zoxide migration ---
+import_autojump_history() {
+  if ! command -v zoxide &>/dev/null; then
+    return
+  fi
+
+  # Common autojump data paths (macOS and Linux)
+  local aj_paths=(
+    "${HOME}/Library/autojump/autojump.txt"
+    "${HOME}/.local/share/autojump/autojump.txt"
+  )
+
+  for aj_file in "${aj_paths[@]}"; do
+    if [ -f "$aj_file" ]; then
+      info "Importing autojump history from ${aj_file}..."
+      run zoxide import --from autojump --merge "$aj_file"
+      ok "Autojump history imported into zoxide"
+      return
+    fi
+  done
+}
+
 # --- Claude Code ---
 install_claude_code() {
   if command -v claude &>/dev/null; then
@@ -505,6 +527,10 @@ main() {
     macos)  install_macos_packages ;;
     ubuntu) install_ubuntu_packages ;;
   esac
+
+  echo ""
+  info "=== Importing autojump history ==="
+  import_autojump_history
 
   echo ""
   info "=== Installing Claude Code ==="
