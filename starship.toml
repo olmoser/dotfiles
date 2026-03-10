@@ -8,13 +8,13 @@ $git_state\
 $git_status\
 $git_metrics\
 
-$python\
-$nodejs\
 $cmd_duration\
 $status\
 $fill\
 $kubernetes\
 $line_break\
+$python\
+$nodejs\
 $username\
 $time\
 $character"""
@@ -70,7 +70,8 @@ contexts = [
 
 [python]
 symbol = ""
-format = '\[[${symbol} ${pyenv_prefix}(${version})(\($virtualenv\))]($style)\] '
+format = '\[[${symbol} (${version})(\($pyenv_prefix\))]($style)\] '
+#format = '\[[${symbol} (${version})(\($virtualenv\))]($style)\] '
 detect_extensions = ["py"]
 detect_files = ["pyproject.toml", "requirements.txt", "setup.py", "Pipfile"]
 
