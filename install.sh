@@ -106,7 +106,10 @@ APT_PACKAGES=(
   btop
   nethogs
   tmux
+  neovim
   yq
+  zsh-autosuggestions
+  zsh-syntax-highlighting
 )
 
 install_macos_packages() {
@@ -235,6 +238,14 @@ install_ubuntu_packages() {
     ok "kubectx already installed"
   fi
 
+  # jqp (GitHub release)
+  if ! command -v jqp &>/dev/null; then
+    info "Installing jqp..."
+    run sh -c 'JQP_VERSION=$(curl -fsSL "https://api.github.com/repos/noahgorstein/jqp/releases/latest" | jq -r .tag_name | sed "s/v//") && curl -fsSLo /tmp/jqp.tar.gz "https://github.com/noahgorstein/jqp/releases/download/v${JQP_VERSION}/jqp_Linux_x86_64.tar.gz" && tar xzf /tmp/jqp.tar.gz -C /tmp jqp && sudo install /tmp/jqp /usr/local/bin && rm /tmp/jqp /tmp/jqp.tar.gz'
+  else
+    ok "jqp already installed"
+  fi
+
   # jnv (via cargo)
   if ! command -v jnv &>/dev/null; then
     if command -v cargo &>/dev/null; then
@@ -245,6 +256,19 @@ install_ubuntu_packages() {
     fi
   else
     ok "jnv already installed"
+  fi
+
+  # fzf (from git — apt version is too old)
+  if dpkg -l fzf &>/dev/null 2>&1; then
+    info "Removing apt version of fzf (too old)..."
+    run sudo apt-get remove -y -qq fzf
+  fi
+  if [ ! -d "${HOME}/.fzf" ]; then
+    info "Installing fzf from git..."
+    run git clone --depth 1 https://github.com/junegunn/fzf.git "${HOME}/.fzf"
+    run "${HOME}/.fzf/install" --key-bindings --completion --no-update-rc --no-bash --no-zsh --no-fish
+  else
+    ok "fzf already installed (${HOME}/.fzf)"
   fi
 
   # pnpm
