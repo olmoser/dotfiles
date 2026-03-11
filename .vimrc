@@ -63,6 +63,9 @@ autocmd Filetype yaml,yml setlocal ts=2 sw=2 expandtab
 " TAB completion in popup menu
 inoremap <expr><TAB> pumvisible() ? "\<C-n>" : "\<TAB>"
 
+" Re-indent entire file, return to cursor position
+nnoremap <Leader>f gg=G``
+
 " fzf mappings
 nnoremap <Leader>o :Files<CR>
 nnoremap <Leader>b :Buffers<CR>
