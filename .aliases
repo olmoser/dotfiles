@@ -16,53 +16,54 @@ alias h="history"
 
 # --- ls (eza with fallback) ---
 if command -v eza &>/dev/null; then
-  alias l="eza -l --classify"
-  alias la="eza -la --classify"
-  alias ll="eza -la --classify"
-  # Wrap eza as ls, translating common ls flags to eza equivalents
-  # so that muscle-memory like `ls -lsatr` keeps working
-  function ls {
-    local args=()
-    for arg in "$@"; do
-      if [[ "$arg" =~ ^-[a-zA-Z]+$ && ! "$arg" =~ ^-- ]]; then
-        local flags="${arg#-}"
-        local i
-        for ((i = 0; i < ${#flags}; i++)); do
-          case "${flags:$i:1}" in
-            t) args+=(--sort=modified) ;;
-            S) args+=(--sort=size) ;;
-            r) args+=(--reverse) ;;
-            l) args+=(-l) ;;
-            a) args+=(-a) ;;
-            h) args+=(-h) ;;
-            s) ;;  # eza shows sizes by default in long mode
-            F) args+=(--classify) ;;
-            R) args+=(--recurse) ;;
-            *) args+=("-${flags:$i:1}") ;;
-          esac
-        done
-      else
-        args+=("$arg")
-      fi
-    done
-    command eza "${args[@]}"
-  }
+	alias l="eza -l --classify"
+	alias la="eza -la --classify"
+	alias ll="eza -la --classify"
+	# Wrap eza as ls, translating common ls flags to eza equivalents
+	# so that muscle-memory like `ls -lsatr` keeps working
+	function ls {
+		local args=()
+		for arg in "$@"; do
+			if [[ "$arg" =~ ^-[a-zA-Z]+$ && ! "$arg" =~ ^-- ]]; then
+				local flags="${arg#-}"
+				local i
+				for ((i = 0; i < ${#flags}; i++)); do
+					case "${flags:$i:1}" in
+						t) args+=(--sort=modified) ;;
+						S) args+=(--sort=size) ;;
+						r) args+=(--reverse) ;;
+						l) args+=(-l) ;;
+						a) args+=(-a) ;;
+						h) args+=(-h) ;;
+						s) ;;  # eza shows sizes by default in long mode
+						F) args+=(--classify) ;;
+						R) args+=(--recurse) ;;
+						*) args+=("-${flags:$i:1}") ;;
+					esac
+				done
+			else
+				args+=("$arg")
+			fi
+		done
+		command eza "${args[@]}"
+	}
 else
-  if command ls --color >/dev/null 2>&1; then
-    colorflag="--color"
-  else
-    colorflag="-G"
-  fi
-  alias l="command ls -lF ${colorflag}"
-  alias la="command ls -laF ${colorflag}"
-  alias ll="command ls -laF ${colorflag}"
-  alias ls="command ls ${colorflag}"
-  export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
+	if command ls --color >/dev/null 2>&1; then
+		colorflag="--color"
+	else
+		colorflag="-G"
+	fi
+	alias l="command ls -lF ${colorflag}"
+	alias la="command ls -laF ${colorflag}"
+	alias ll="command ls -laF ${colorflag}"
+	alias ls="command ls ${colorflag}"
+	unset colorflag
+	export LS_COLORS='no=00:fi=00:di=01;34:ln=01;36:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arj=01;31:*.taz=01;31:*.lzh=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.gz=01;31:*.bz2=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.jpg=01;35:*.jpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.avi=01;35:*.fli=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.ogg=01;35:*.mp3=01;35:*.wav=01;35:'
 fi
 
-# --- cat/find replacements ---
-command -v bat &>/dev/null && alias cat='bat --paging=never'
-command -v fd &>/dev/null && alias find='fd'
+# --- modern tool shortcuts (avoid shadowing core commands) ---
+command -v bat &>/dev/null && alias ccat='bat --paging=never'
+command -v fd &>/dev/null && alias ff='fd'
 
 # --- General ---
 alias sudo='sudo '
@@ -73,9 +74,9 @@ alias reload="exec \$SHELL -l"
 
 # --- Update (cross-platform) ---
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup'
+	alias update='sudo softwareupdate -i -a; brew update; brew upgrade; brew cleanup'
 else
-  alias update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y'
+	alias update='sudo apt-get update && sudo apt-get upgrade -y && sudo apt-get autoremove -y'
 fi
 
 # --- Networking ---
@@ -84,44 +85,56 @@ alias whatsmyip='curl http://api.ipify.org?format=text'
 alias ips="ifconfig -a | grep -o 'inet6\\? \\(addr:\\)\\?\\s\\?\\(\\(\\([0-9]\\+\\.\\)\\{3\\}[0-9]\\+\\)\\|[a-fA-F0-9:]\\+\\)' | awk '{ sub(/inet6? (addr:)? ?/, \"\"); print }'"
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  alias localip="ipconfig getifaddr en0"
-  alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
+	alias localip="ipconfig getifaddr en0"
+	alias flush="dscacheutil -flushcache && killall -HUP mDNSResponder"
 else
-  alias localip="hostname -I | cut -d' ' -f1"
+	alias localip="hostname -I | cut -d' ' -f1"
 fi
 
 alias netstat-proc='lsof -nP -iTCP | grep LISTEN'
 
 # --- Clipboard (cross-platform) ---
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  alias c="tr -d '\\n' | pbcopy"
+	alias c="tr -d '\\n' | pbcopy"
 else
-  alias c="tr -d '\\n' | xclip -selection clipboard"
+	alias c="tr -d '\\n' | xclip -selection clipboard"
 fi
 
 # --- File management ---
-alias cleanup="find . -type f -name '*.DS_Store' -ls -delete"
+unalias cleanup 2>/dev/null || true
+cleanup() {
+	command find . -type f -name '*.DS_Store' -ls -delete
+}
 command -v hd >/dev/null || alias hd="hexdump -C"
 command -v md5sum >/dev/null || alias md5sum="md5"
 command -v sha1sum >/dev/null || alias sha1sum="shasum"
 
 # --- macOS-specific ---
 if [[ "$(uname -s)" == "Darwin" ]]; then
-  alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
-  alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
-  alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
-  alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
-  alias afk="/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend"
-  alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
-  alias badge="tput bel"
-  alias plistbuddy="/usr/libexec/PlistBuddy"
-  alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+	alias show="defaults write com.apple.finder AppleShowAllFiles -bool true && killall Finder"
+	alias hide="defaults write com.apple.finder AppleShowAllFiles -bool false && killall Finder"
+	alias hidedesktop="defaults write com.apple.finder CreateDesktop -bool false && killall Finder"
+	alias showdesktop="defaults write com.apple.finder CreateDesktop -bool true && killall Finder"
+	alias afk="/System/Library/CoreServices/Menu\\ Extras/User.menu/Contents/Resources/CGSession -suspend"
+	alias emptytrash="sudo rm -rfv /Volumes/*/.Trashes; sudo rm -rfv ~/.Trash; sudo rm -rfv /private/var/log/asl/*.asl"
+	alias badge="tput bel"
+	alias plistbuddy="/usr/libexec/PlistBuddy"
+	alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
 fi
 
 # --- Kubernetes ---
 alias ka='kubectl get pods --all-namespaces'
-alias kctx='kubectl ctx'
-alias kns='kubectl ns'
+if command -v kubectx &>/dev/null; then
+	alias kctx='kubectx'
+elif command -v kubectl &>/dev/null; then
+	alias kctx='kubectl ctx'
+fi
+
+if command -v kubens &>/dev/null; then
+	alias kns='kubens'
+elif command -v kubectl &>/dev/null; then
+	alias kns='kubectl ns'
+fi
 
 # --- Data processing ---
 # shellcheck disable=SC2154

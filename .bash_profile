@@ -1,18 +1,11 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091
 
-# Load shell dotfiles:
-# ~/.path can extend $PATH, ~/.extra for settings you don't want to commit
-for file in ~/.{path,exports,aliases,functions,extra}; do
-  [ -r "$file" ] && [ -f "$file" ] && source "$file"
-done
-unset file
-
-# Homebrew (conditional)
-if [ -f /opt/homebrew/bin/brew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -f /usr/local/bin/brew ]; then
-  eval "$(/usr/local/bin/brew shellenv)"
+# Shared shell bootstrap (bash + zsh)
+if [ -f "${HOME}/.shell_shared" ]; then
+  source "${HOME}/.shell_shared"
+else
+  echo "[WARN] ~/.shell_shared not found. Run install.sh to set up dotfiles." >&2
 fi
 
 # Shell options
@@ -45,50 +38,4 @@ PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a"
 
 # Silence macOS bash deprecation warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
-
-# pyenv (conditional)
-if command -v pyenv &>/dev/null; then
-  export PYENV_ROOT="${HOME}/.pyenv"
-  case ":${PATH}:" in
-    *":${PYENV_ROOT}/bin:"*) ;;
-    *) export PATH="${PYENV_ROOT}/bin:${PATH}" ;;
-  esac
-  eval "$(pyenv init -)"
-  command -v pyenv-virtualenv-init &>/dev/null && eval "$(pyenv virtualenv-init -)"
-fi
-
-# Go paths (conditional)
-if command -v go &>/dev/null; then
-  [ -n "$GOROOT" ] && export PATH="${GOROOT}/bin:${PATH}"
-  [ -n "$GOPATH" ] && export PATH="${PATH}:${GOPATH}/bin"
-fi
-
-# Cargo env (conditional)
-[ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
-
-# --- Modern shell tools ---
-
-# Starship prompt
-command -v starship &>/dev/null && eval "$(starship init bash)"
-
-# Zoxide (smart cd)
-command -v zoxide &>/dev/null && eval "$(zoxide init bash --cmd j)"
-
-# Skim keybindings
-if command -v sk &>/dev/null; then
-  # Try brew-installed skim keybindings, then common paths
-  for sk_bindings in \
-    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/completion.bash" \
-    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/key-bindings.bash" \
-    "${HOME}/.skim/shell/completion.bash" \
-    "${HOME}/.skim/shell/key-bindings.bash" \
-    "/usr/share/skim/completion.bash" \
-    "/usr/share/skim/key-bindings.bash"; do
-    [ -f "$sk_bindings" ] && source "$sk_bindings"
-  done
-  unset sk_bindings
-fi
-
-# fzf fuzzy search
-command -v fzf &>/dev/null && eval "$(fzf --bash)"
 

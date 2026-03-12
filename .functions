@@ -231,12 +231,32 @@ decode_k8s_secret() {
 
 # Convert milliseconds timestamp to date
 millis_to_date() {
-  date -r $(($1 / 1000))
+  if [ -z "${1:-}" ]; then
+    echo "Usage: millis_to_date <milliseconds>" >&2
+    return 1
+  fi
+
+  local seconds
+  seconds=$(($1 / 1000))
+
+  if date -d "@${seconds}" >/dev/null 2>&1; then
+    date -d "@${seconds}"
+  else
+    date -r "${seconds}"
+  fi
 }
 
 # Parse traceparent from base64-encoded string
 parse_traceparent_base64() {
-  echo "$1" | base64 -D | jq -r '.traceparent' | cut -d '-' -f 2
+  local decoded
+
+  if [[ "$(uname -s)" == "Darwin" ]]; then
+    decoded=$(printf '%s' "$1" | base64 -D 2>/dev/null) || return 1
+  else
+    decoded=$(printf '%s' "$1" | base64 -d 2>/dev/null) || return 1
+  fi
+
+  printf '%s' "${decoded}" | jq -r '.traceparent' | cut -d '-' -f2
 }
 
 # Combine PDF files using Ghostscript

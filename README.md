@@ -25,6 +25,7 @@ The install script detects your OS, installs packages, and symlinks config files
 |------------------|----------------------------------------------------------------|
 | `.bash_profile`  | Bash init: loads dotfiles, sets up brew/pyenv/go/cargo/fzf     |
 | `.zshrc`         | Zsh init: mirrors `.bash_profile` with zsh-native options      |
+| `.shell_shared`  | Shared bootstrap sourced by both bash and zsh                  |
 | `.zprofile`      | Zsh login shell: brew, PATH, cargo env                         |
 | `.exports`       | Environment variables (editor, history, locale)                |
 | `.aliases`       | Shortcuts, `eza`/`bat`/`fd` wrappers, k8s/cloud/git aliases   |
@@ -37,7 +38,7 @@ The install script detects your OS, installs packages, and symlinks config files
 | Config              | Tool                                          |
 |---------------------|-----------------------------------------------|
 | `.vimrc`            | Vim (lean, 6 plugins via vim-plug for quick edits) |
-| `nvim/`             | [Neovim](https://neovim.io) (lazy.nvim, treesitter, telescope, Claude AI autocomplete via minuet-ai) |
+| `nvim/`             | [Neovim](https://neovim.io) (lazy.nvim, treesitter, telescope, Codex autocomplete via minuet-ai) |
 | `starship.toml`     | [Starship](https://starship.rs) prompt (dark teal theme with powerline + nerd font icons) |
 | `starship-simple.toml` | Minimal single-line starship prompt        |
 | `ghostty.config`    | [Ghostty](https://ghostty.org) terminal       |
@@ -55,7 +56,7 @@ The install script detects your OS, installs packages, and symlinks config files
 
 ## Starship theme
 
-The installer prompts for a theme choice (or set `STARSHIP_THEME=simple` to skip the prompt):
+The installer prompts for a theme choice in interactive shells (or set `STARSHIP_THEME=simple` to skip the prompt):
 
 - **default** -- powerline segments with git metrics, k8s context, language versions, battery
 - **simple** -- minimal single-line prompt
