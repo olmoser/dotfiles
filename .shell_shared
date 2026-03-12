@@ -1,0 +1,66 @@
+#!/usr/bin/env bash
+# shellcheck disable=SC1090,SC1091
+
+# Shared bootstrap for bash and zsh.
+# Shell-specific options/completions should stay in .bash_profile/.zshrc.
+
+for file in ~/.{path,exports,aliases,functions,extra}; do
+  [ -r "$file" ] && [ -f "$file" ] && source "$file"
+done
+unset file
+
+if [ -f /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+if [ -n "${ZSH_VERSION:-}" ]; then
+  _shell_kind="zsh"
+else
+  _shell_kind="bash"
+fi
+
+if command -v pyenv &>/dev/null; then
+  export PYENV_ROOT="${HOME}/.pyenv"
+  case ":${PATH}:" in
+    *":${PYENV_ROOT}/bin:"*) ;;
+    *) export PATH="${PYENV_ROOT}/bin:${PATH}" ;;
+  esac
+  eval "$(pyenv init -)"
+  command -v pyenv-virtualenv-init &>/dev/null && eval "$(pyenv virtualenv-init -)"
+fi
+
+if command -v go &>/dev/null; then
+  [ -n "${GOROOT:-}" ] && export PATH="${GOROOT}/bin:${PATH}"
+  [ -n "${GOPATH:-}" ] && export PATH="${PATH}:${GOPATH}/bin"
+fi
+
+[ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
+
+command -v starship &>/dev/null && eval "$(starship init "${_shell_kind}")"
+command -v zoxide &>/dev/null && eval "$(zoxide init "${_shell_kind}" --cmd j)"
+
+if command -v sk &>/dev/null; then
+  _skim_ext="${_shell_kind}"
+  for sk_bindings in \
+    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/completion.${_skim_ext}" \
+    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/key-bindings.${_skim_ext}" \
+    "${HOME}/.skim/shell/completion.${_skim_ext}" \
+    "${HOME}/.skim/shell/key-bindings.${_skim_ext}" \
+    "/usr/share/skim/completion.${_skim_ext}" \
+    "/usr/share/skim/key-bindings.${_skim_ext}"; do
+    [ -f "$sk_bindings" ] && source "$sk_bindings"
+  done
+  unset sk_bindings _skim_ext
+fi
+
+if command -v fzf &>/dev/null; then
+  if [ "${_shell_kind}" = "zsh" ]; then
+    eval "$(fzf --zsh)"
+  else
+    eval "$(fzf --bash)"
+  fi
+fi
+
+unset _shell_kind

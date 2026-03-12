@@ -1,14 +1,25 @@
 return {
 	-- Treesitter: syntax highlighting + text objects
-	{
-		"nvim-treesitter/nvim-treesitter",
-		build = ":TSUpdate",
-		config = function()
-			require("nvim-treesitter.configs").setup({
-				ensure_installed = {
-					"bash", "go", "json", "lua", "markdown", "python",
-					"toml", "typescript", "yaml",
-				},
+		{
+			"nvim-treesitter/nvim-treesitter",
+			build = ":TSUpdate",
+			config = function()
+				local ok, ts_configs = pcall(require, "nvim-treesitter.configs")
+				if not ok then
+					vim.schedule(function()
+						vim.notify(
+							"nvim-treesitter not available yet. Run :Lazy sync and restart Neovim.",
+							vim.log.levels.WARN
+						)
+					end)
+					return
+				end
+
+				ts_configs.setup({
+					ensure_installed = {
+						"bash", "go", "json", "lua", "markdown", "python",
+						"toml", "typescript", "yaml",
+					},
 				highlight = { enable = true },
 				indent = { enable = true },
 			})
@@ -80,22 +91,27 @@ return {
 		end,
 	},
 
-	-- Claude ghost-text autocomplete
-	{
-		"milanglacier/minuet-ai.nvim",
-		dependencies = { "nvim-lua/plenary.nvim" },
-		config = function()
-			require("minuet").setup({
-				provider = "claude",
-				provider_options = {
-					claude = {
-						api_key = "ANTHROPIC_API_KEY",
-						model = "claude-sonnet-4-20250514",
+		-- Codex ghost-text autocomplete
+		{
+			"milanglacier/minuet-ai.nvim",
+			dependencies = { "nvim-lua/plenary.nvim" },
+			config = function()
+				local minuet_provider = vim.env.MINUET_PROVIDER or "openai"
+				require("minuet").setup({
+					provider = minuet_provider,
+					provider_options = {
+						claude = {
+							api_key = os.getenv("ANTHROPIC_API_KEY"),
+							model = "claude-sonnet-4-20250514",
+						},
+						openai = {
+							api_key = os.getenv("OPENAI_API_KEY"),
+							model = "gpt-5.3-codex",
+						},
 					},
-				},
-			})
-		end,
-	},
+				})
+			end,
+		},
 
 	-- Claude Code IDE bridge
 	{
