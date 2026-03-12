@@ -74,21 +74,27 @@ hs.hotkey.bind({"cmd", "alt", "ctrl"}, "R", function()
 end)
 
 function toggle_application(name)
-    local app = hs.application.get(name)
-    if not app then
-        print("Launching app " .. name)
-        hs.application.launchOrFocus(name)
-        return
+  local app = hs.application.get(name)
+  if not app then
+    print("Launching app " .. name)
+    hs.application.launchOrFocus(name)
+    return
+  end
+
+  local frontmost = hs.application.frontmostApplication()
+  local is_frontmost = frontmost and frontmost:name() == name
+
+  if app:isHidden() or not is_frontmost then
+    print("Focusing app " .. name)
+    hs.application.launchOrFocus(name)
+    app = hs.application.get(name)
+    if app then
+      app:activate(true)
     end
-    if app:isHidden() then
-        print("App is hidden, activating " .. name)
-        hs.application.launchOrFocus(name)
-		local app = hs.application.get(name)
-		app:activate(true)
-    else
-        app:hide()
-        print("App is active, hiding" .. name)
-    end
+  else
+    print("Hiding app " .. name)
+    app:hide()
+  end
 end
 
 hs.alert.show("Config loaded")

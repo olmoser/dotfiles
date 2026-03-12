@@ -40,6 +40,17 @@ vim.keymap.set("n", "<F5>", ":set listchars=eol:¬,tab:>·,trail:~,extends:>,pre
 -- Save shortcut
 vim.keymap.set("n", "<Leader>w", ":w<CR>")
 
+-- Format shortcut: \f
+vim.keymap.set("n", "\\f", function()
+	local has_lsp = next(vim.lsp.get_clients({ bufnr = 0 })) ~= nil
+	if has_lsp then
+		vim.lsp.buf.format({ async = true })
+	else
+		vim.cmd("normal! gg=G")
+	end
+end, { desc = "Format buffer" })
+vim.keymap.set("v", "\\f", "=", { desc = "Format selection" })
+
 -- YAML 2-space indent
 vim.api.nvim_create_autocmd("FileType", {
 	pattern = { "yaml", "yml" },

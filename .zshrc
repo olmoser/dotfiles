@@ -1,10 +1,11 @@
 #!/usr/bin/env zsh
 
-# Load shared dotfiles (same files as bash)
-for file in ~/.{path,exports,aliases,functions,extra}; do
-  [ -r "$file" ] && [ -f "$file" ] && source "$file"
-done
-unset file
+# Shared shell bootstrap (bash + zsh)
+if [ -f "${HOME}/.shell_shared" ]; then
+  source "${HOME}/.shell_shared"
+else
+  echo "[WARN] ~/.shell_shared not found. Run install.sh to set up dotfiles." >&2
+fi
 
 # --- Zsh options ---
 setopt NO_CASE_GLOB       # Case-insensitive globbing
@@ -47,51 +48,6 @@ if command -v terraform &>/dev/null; then
   autoload -U +X bashcompinit && bashcompinit
   complete -C "$(command -v terraform)" terraform
 fi
-
-# --- pyenv (conditional) ---
-if command -v pyenv &>/dev/null; then
-  export PYENV_ROOT="${HOME}/.pyenv"
-  case ":${PATH}:" in
-    *":${PYENV_ROOT}/bin:"*) ;;
-    *) export PATH="${PYENV_ROOT}/bin:${PATH}" ;;
-  esac
-  eval "$(pyenv init -)"
-  command -v pyenv-virtualenv-init &>/dev/null && eval "$(pyenv virtualenv-init -)"
-fi
-
-# --- Go paths (conditional) ---
-if command -v go &>/dev/null; then
-  [ -n "$GOROOT" ] && export PATH="${GOROOT}/bin:${PATH}"
-  [ -n "$GOPATH" ] && export PATH="${PATH}:${GOPATH}/bin"
-fi
-
-# --- Cargo env (conditional) ---
-[ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
-
-# --- Modern shell tools ---
-
-# Starship prompt
-command -v starship &>/dev/null && eval "$(starship init zsh)"
-
-# Zoxide (smart cd)
-command -v zoxide &>/dev/null && eval "$(zoxide init zsh --cmd j)"
-
-# Skim keybindings
-if command -v sk &>/dev/null; then
-  for sk_bindings in \
-    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/completion.zsh" \
-    "$(brew --prefix 2>/dev/null)/opt/sk/share/skim/key-bindings.zsh" \
-    "${HOME}/.skim/shell/completion.zsh" \
-    "${HOME}/.skim/shell/key-bindings.zsh" \
-    "/usr/share/skim/completion.zsh" \
-    "/usr/share/skim/key-bindings.zsh"; do
-    [ -f "$sk_bindings" ] && source "$sk_bindings"
-  done
-  unset sk_bindings
-fi
-
-# fzf fuzzy search
-command -v fzf &>/dev/null && eval "$(fzf --zsh)"
 
 # --- Zsh plugins ---
 

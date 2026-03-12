@@ -112,6 +112,42 @@ APT_PACKAGES=(
   zsh-syntax-highlighting
 )
 
+install_apt_binary_if_available() {
+  local binary="$1"
+  local apt_package="$2"
+  local missing_message="$3"
+
+  if command -v "$binary" &>/dev/null; then
+    ok "${binary} already installed"
+    return
+  fi
+
+  if apt-cache show "$apt_package" &>/dev/null; then
+    info "Installing ${apt_package} via apt..."
+    run sudo apt-get install -y -qq "$apt_package"
+  else
+    warn "${missing_message}"
+  fi
+}
+
+install_cargo_binary_if_missing() {
+  local binary="$1"
+  local crate="${2:-$1}"
+  local missing_message="$3"
+
+  if command -v "$binary" &>/dev/null; then
+    ok "${binary} already installed"
+    return
+  fi
+
+  if command -v cargo &>/dev/null; then
+    info "Installing ${crate} via cargo..."
+    run cargo install "$crate"
+  else
+    warn "${missing_message}"
+  fi
+}
+
 install_macos_packages() {
   install_homebrew
 
@@ -182,41 +218,17 @@ install_ubuntu_packages() {
     ok "zoxide already installed"
   fi
 
-  # eza (via cargo or apt on newer Ubuntu)
-  if ! command -v eza &>/dev/null; then
-    if apt-cache show eza &>/dev/null 2>&1; then
-      info "Installing eza via apt..."
-      run sudo apt-get install -y -qq eza
-    else
-      warn "eza not available in apt. Install manually or via cargo: cargo install eza"
-    fi
-  else
-    ok "eza already installed"
-  fi
+  # eza
+  install_apt_binary_if_available "eza" "eza" \
+    "eza not available in apt. Install manually or via cargo: cargo install eza"
 
-  # skim (via cargo)
-  if ! command -v sk &>/dev/null; then
-    if command -v cargo &>/dev/null; then
-      info "Installing skim via cargo..."
-      run cargo install skim
-    else
-      warn "skim requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-    fi
-  else
-    ok "skim already installed"
-  fi
+  # skim
+  install_cargo_binary_if_missing "sk" "skim" \
+    "skim requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
   # git-delta
-  if ! command -v delta &>/dev/null; then
-    if apt-cache show git-delta &>/dev/null 2>&1; then
-      info "Installing git-delta via apt..."
-      run sudo apt-get install -y -qq git-delta
-    else
-      warn "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
-    fi
-  else
-    ok "git-delta already installed"
-  fi
+  install_apt_binary_if_available "delta" "git-delta" \
+    "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
 
   # kubectl
   if ! command -v kubectl &>/dev/null; then
@@ -246,17 +258,9 @@ install_ubuntu_packages() {
     ok "jqp already installed"
   fi
 
-  # jnv (via cargo)
-  if ! command -v jnv &>/dev/null; then
-    if command -v cargo &>/dev/null; then
-      info "Installing jnv via cargo..."
-      run cargo install jnv
-    else
-      warn "jnv requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-    fi
-  else
-    ok "jnv already installed"
-  fi
+  # jnv
+  install_cargo_binary_if_missing "jnv" "jnv" \
+    "jnv requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
   # fzf (from git — apt version is too old)
   if dpkg -l fzf &>/dev/null 2>&1; then
@@ -288,16 +292,8 @@ install_ubuntu_packages() {
   fi
 
   # difftastic
-  if ! command -v difft &>/dev/null; then
-    if command -v cargo &>/dev/null; then
-      info "Installing difftastic via cargo..."
-      run cargo install difftastic
-    else
-      warn "difftastic requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
-    fi
-  else
-    ok "difftastic already installed"
-  fi
+  install_cargo_binary_if_missing "difft" "difftastic" \
+    "difftastic requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
   # Google Cloud SDK
   if ! command -v gcloud &>/dev/null; then
@@ -323,29 +319,13 @@ install_ubuntu_packages() {
     ok "lazydocker already installed"
   fi
 
-  # dust (via cargo)
-  if ! command -v dust &>/dev/null; then
-    if command -v cargo &>/dev/null; then
-      info "Installing dust via cargo..."
-      run cargo install du-dust
-    else
-      warn "dust requires cargo. Install Rust first."
-    fi
-  else
-    ok "dust already installed"
-  fi
+  # dust
+  install_cargo_binary_if_missing "dust" "du-dust" \
+    "dust requires cargo. Install Rust first."
 
-  # xh (via cargo)
-  if ! command -v xh &>/dev/null; then
-    if command -v cargo &>/dev/null; then
-      info "Installing xh via cargo..."
-      run cargo install xh
-    else
-      warn "xh requires cargo. Install Rust first."
-    fi
-  else
-    ok "xh already installed"
-  fi
+  # xh
+  install_cargo_binary_if_missing "xh" "xh" \
+    "xh requires cargo. Install Rust first."
 
   # fd is named fd-find on Ubuntu, create symlink if needed
   if command -v fdfind &>/dev/null && ! command -v fd &>/dev/null; then
@@ -402,7 +382,7 @@ install_claude_code() {
 # --- btop catppuccin theme ---
 install_btop_theme() {
   local theme_dir="${HOME}/.config/btop/themes"
-  if [ -d "${theme_dir}/catppuccin" ]; then
+  if compgen -G "${theme_dir}/catppuccin_*.theme" >/dev/null; then
     ok "Catppuccin btop theme already installed"
     return
   fi
@@ -410,10 +390,10 @@ install_btop_theme() {
   run mkdir -p "${theme_dir}"
   run git clone --depth 1 https://github.com/catppuccin/btop.git /tmp/catppuccin-btop
   if [ "$DRY_RUN" != "true" ]; then
-    cp -r /tmp/catppuccin-btop/themes "${theme_dir}/catppuccin"
+    cp -r /tmp/catppuccin-btop/themes/* "${theme_dir}/"
     rm -rf /tmp/catppuccin-btop
   fi
-  ok "Catppuccin btop theme installed to ${theme_dir}/catppuccin"
+  ok "Catppuccin btop theme installed to ${theme_dir}"
 }
 
 # --- Starship theme selection ---
@@ -437,6 +417,12 @@ select_starship_theme() {
 
   if [ "$DRY_RUN" = "true" ]; then
     info "[DRY RUN] Would prompt for starship theme selection (default: gruvbox)"
+    STARSHIP_CONFIG="$gruvbox"
+    return
+  fi
+
+  if [ ! -t 0 ] || [ ! -t 1 ]; then
+    info "Non-interactive shell detected; using gruvbox theme"
     STARSHIP_CONFIG="$gruvbox"
     return
   fi
@@ -491,6 +477,7 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/.bash_profile" "${HOME}/.bash_profile"
   symlink "${DOTFILES_DIR}/.zshrc"        "${HOME}/.zshrc"
   symlink "${DOTFILES_DIR}/.zprofile"     "${HOME}/.zprofile"
+  symlink "${DOTFILES_DIR}/.shell_shared" "${HOME}/.shell_shared"
   symlink "${DOTFILES_DIR}/.aliases"      "${HOME}/.aliases"
   symlink "${DOTFILES_DIR}/.exports"      "${HOME}/.exports"
   symlink "${DOTFILES_DIR}/.functions"    "${HOME}/.functions"
