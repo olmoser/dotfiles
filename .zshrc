@@ -61,8 +61,10 @@ fi
 # fzf — must be after compinit to avoid keybinding conflicts
 if [ -f "${HOME}/.fzf.zsh" ]; then
   source "${HOME}/.fzf.zsh"
-elif command -v fzf &>/dev/null; then
+elif command -v fzf &>/dev/null && fzf --zsh >/dev/null 2>&1; then
   eval "$(fzf --zsh)"
+else
+  echo "[WARN] fzf not found or too old (need >=0.48). No fzf keybindings." >&2
 fi
 
 # Syntax highlighting (must be sourced last)

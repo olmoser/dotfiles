@@ -42,6 +42,8 @@ export BASH_SILENCE_DEPRECATION_WARNING=1
 # fzf — must be after bash completion to avoid Ctrl-R binding being overwritten
 if [ -f "${HOME}/.fzf.bash" ]; then
   source "${HOME}/.fzf.bash"
-elif command -v fzf &>/dev/null; then
+elif command -v fzf &>/dev/null && fzf --bash >/dev/null 2>&1; then
   eval "$(fzf --bash)"
+else
+  echo "[WARN] fzf not found or too old (need >=0.48). No fzf keybindings." >&2
 fi
