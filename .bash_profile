@@ -39,3 +39,9 @@ PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a"
 # Silence macOS bash deprecation warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
 
+# fzf — must be after bash completion to avoid Ctrl-R binding being overwritten
+if [ -f "${HOME}/.fzf.bash" ]; then
+  source "${HOME}/.fzf.bash"
+elif command -v fzf &>/dev/null; then
+  eval "$(fzf --bash)"
+fi

@@ -62,6 +62,7 @@ install_homebrew() {
 # --- Package Installation ---
 BREW_PACKAGES=(
   starship
+  fzf
   sk        # skim
   ripgrep
   zoxide

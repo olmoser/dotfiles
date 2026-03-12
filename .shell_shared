@@ -56,10 +56,4 @@ if command -v sk &>/dev/null; then
   unset sk_bindings _skim_ext
 fi
 
-if command -v fzf &>/dev/null; then
-  if fzf --"${_shell_kind}" >/dev/null 2>&1; then
-    eval "$(fzf --"${_shell_kind}")"
-  fi
-fi
-
 unset _shell_kind

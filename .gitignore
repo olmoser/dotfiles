@@ -2,4 +2,6 @@
 .idea
 *.bak
 .devcontainer
+.fzf.bash
+.fzf.zsh
 lazy-lock.json
