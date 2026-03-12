@@ -324,7 +324,7 @@ gwt() {
 
   git worktree add -b "${type}/${name}" "${dest_dir}" "$base"
   git worktree list
-  cp -r .claude .env ./*-sa.json "${dest_dir}" 2>/dev/null || true
+  cp -r .claude .env ./*-sa.json .devcontainer "${dest_dir}" 2>/dev/null || true
   cd "${dest_dir}" || return
 }
 
