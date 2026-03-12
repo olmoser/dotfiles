@@ -62,6 +62,7 @@ install_homebrew() {
 # --- Package Installation ---
 BREW_PACKAGES=(
   starship
+  fzf
   sk        # skim
   ripgrep
   zoxide
@@ -270,6 +271,8 @@ install_ubuntu_packages() {
   if [ ! -d "${HOME}/.fzf" ]; then
     info "Installing fzf from git..."
     run git clone --depth 1 https://github.com/junegunn/fzf.git "${HOME}/.fzf"
+    # --no-bash/--no-zsh: skip generating ~/.fzf.bash/~/.fzf.zsh;
+    # shell init is handled by .bash_profile and .zshrc via eval "$(fzf --bash/--zsh)"
     run "${HOME}/.fzf/install" --key-bindings --completion --no-update-rc --no-bash --no-zsh --no-fish
   else
     ok "fzf already installed (${HOME}/.fzf)"

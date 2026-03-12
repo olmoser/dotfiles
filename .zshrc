@@ -58,6 +58,15 @@ elif [ -f /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh ]; then
   source /usr/share/zsh-autosuggestions/zsh-autosuggestions.zsh
 fi
 
+# fzf — must be after compinit to avoid keybinding conflicts
+if [ -f "${HOME}/.fzf.zsh" ]; then
+  source "${HOME}/.fzf.zsh"
+elif command -v fzf &>/dev/null && fzf --zsh >/dev/null 2>&1; then
+  eval "$(fzf --zsh)"
+else
+  echo "[WARN] fzf not found or too old (need >=0.48). No fzf keybindings." >&2
+fi
+
 # Syntax highlighting (must be sourced last)
 if [ -f "$(brew --prefix 2>/dev/null)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh" ]; then
   source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
