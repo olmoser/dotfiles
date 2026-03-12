@@ -231,6 +231,11 @@ decode_k8s_secret() {
 
 # Convert milliseconds timestamp to date
 millis_to_date() {
+  if [ -z "${1:-}" ]; then
+    echo "Usage: millis_to_date <milliseconds>" >&2
+    return 1
+  fi
+
   local seconds
   seconds=$(($1 / 1000))
 

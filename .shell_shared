@@ -1,7 +1,8 @@
-#!/usr/bin/env bash
+# shellcheck shell=bash
 # shellcheck disable=SC1090,SC1091
 
-# Shared bootstrap for bash and zsh.
+# Shared bootstrap sourced by both bash and zsh.
+# Use only POSIX-compatible or bash/zsh-common syntax.
 # Shell-specific options/completions should stay in .bash_profile/.zshrc.
 
 for file in ~/.{path,exports,aliases,functions,extra}; do
@@ -56,10 +57,8 @@ if command -v sk &>/dev/null; then
 fi
 
 if command -v fzf &>/dev/null; then
-  if [ "${_shell_kind}" = "zsh" ]; then
-    eval "$(fzf --zsh)"
-  else
-    eval "$(fzf --bash)"
+  if fzf --"${_shell_kind}" >/dev/null 2>&1; then
+    eval "$(fzf --"${_shell_kind}")"
   fi
 fi
 

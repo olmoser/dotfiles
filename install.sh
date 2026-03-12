@@ -122,7 +122,7 @@ install_apt_binary_if_available() {
     return
   fi
 
-  if apt-cache show "$apt_package" &>/dev/null 2>&1; then
+  if apt-cache show "$apt_package" &>/dev/null; then
     info "Installing ${apt_package} via apt..."
     run sudo apt-get install -y -qq "$apt_package"
   else

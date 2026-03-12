@@ -2,7 +2,11 @@
 # shellcheck disable=SC1090,SC1091
 
 # Shared shell bootstrap (bash + zsh)
-[ -f "${HOME}/.shell_shared" ] && source "${HOME}/.shell_shared"
+if [ -f "${HOME}/.shell_shared" ]; then
+  source "${HOME}/.shell_shared"
+else
+  echo "[WARN] ~/.shell_shared not found. Run install.sh to set up dotfiles." >&2
+fi
 
 # Shell options
 shopt -s nocaseglob   # Case-insensitive globbing

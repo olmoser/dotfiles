@@ -1,25 +1,25 @@
 return {
 	-- Treesitter: syntax highlighting + text objects
-		{
-			"nvim-treesitter/nvim-treesitter",
-			build = ":TSUpdate",
-			config = function()
-				local ok, ts_configs = pcall(require, "nvim-treesitter.configs")
-				if not ok then
-					vim.schedule(function()
-						vim.notify(
-							"nvim-treesitter not available yet. Run :Lazy sync and restart Neovim.",
-							vim.log.levels.WARN
-						)
-					end)
-					return
-				end
+	{
+		"nvim-treesitter/nvim-treesitter",
+		build = ":TSUpdate",
+		config = function()
+			local ok, ts_configs = pcall(require, "nvim-treesitter.configs")
+			if not ok then
+				vim.schedule(function()
+					vim.notify(
+						"nvim-treesitter not available yet. Run :Lazy sync and restart Neovim.",
+						vim.log.levels.WARN
+					)
+				end)
+				return
+			end
 
-				ts_configs.setup({
-					ensure_installed = {
-						"bash", "go", "json", "lua", "markdown", "python",
-						"toml", "typescript", "yaml",
-					},
+			ts_configs.setup({
+				ensure_installed = {
+					"bash", "go", "json", "lua", "markdown", "python",
+					"toml", "typescript", "yaml",
+				},
 				highlight = { enable = true },
 				indent = { enable = true },
 			})
@@ -91,27 +91,39 @@ return {
 		end,
 	},
 
-		-- Codex ghost-text autocomplete
-		{
-			"milanglacier/minuet-ai.nvim",
-			dependencies = { "nvim-lua/plenary.nvim" },
-			config = function()
-				local minuet_provider = vim.env.MINUET_PROVIDER or "openai"
-				require("minuet").setup({
-					provider = minuet_provider,
-					provider_options = {
-						claude = {
-							api_key = os.getenv("ANTHROPIC_API_KEY"),
-							model = "claude-sonnet-4-20250514",
-						},
-						openai = {
-							api_key = os.getenv("OPENAI_API_KEY"),
-							model = "gpt-5.3-codex",
-						},
+	-- Codex ghost-text autocomplete
+	{
+		"milanglacier/minuet-ai.nvim",
+		dependencies = { "nvim-lua/plenary.nvim" },
+		config = function()
+			local minuet_provider = vim.env.MINUET_PROVIDER or "openai"
+
+			local key_env = minuet_provider == "claude" and "ANTHROPIC_API_KEY" or "OPENAI_API_KEY"
+			if not os.getenv(key_env) then
+				vim.schedule(function()
+					vim.notify(
+						"minuet-ai: set " .. key_env .. " for provider '" .. minuet_provider .. "'",
+						vim.log.levels.WARN
+					)
+				end)
+				return
+			end
+
+			require("minuet").setup({
+				provider = minuet_provider,
+				provider_options = {
+					claude = {
+						api_key = os.getenv("ANTHROPIC_API_KEY"),
+						model = vim.env.MINUET_CLAUDE_MODEL or "claude-sonnet-4-20250514",
 					},
-				})
-			end,
-		},
+					openai = {
+						api_key = os.getenv("OPENAI_API_KEY"),
+						model = vim.env.MINUET_OPENAI_MODEL or "codex-mini-latest",
+					},
+				},
+			})
+		end,
+	},
 
 	-- Claude Code IDE bridge
 	{
