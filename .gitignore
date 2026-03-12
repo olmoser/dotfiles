@@ -2,3 +2,4 @@
 .idea
 *.bak
 .devcontainer
+lazy-lock.json
