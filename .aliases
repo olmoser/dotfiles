@@ -165,3 +165,6 @@ alias yaml2json="ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(ARGF
 # --- Claude ---
 alias claude-yolo="claude --dangerously-skip-permissions"
 alias copi='gh copilot suggest'
+
+# --- Python ---
+alias python='python3'
