@@ -328,6 +328,17 @@ gwt() {
   cd "${dest_dir}" || return
 }
 
+# Claude with --dangerously-skip-permissions; confirm if not in a devcontainer
+claude-yolo() {
+  if [ ! -f /.dockerenv ] && [ -z "${REMOTE_CONTAINERS:-}" ] && [ -z "${CODESPACES:-}" ]; then
+    echo "WARNING: --dangerously-skip-permissions outside a devcontainer!"
+    printf "Continue? [y/N] "
+    read -r answer
+    [[ "$answer" =~ ^[Yy]$ ]] || return 1
+  fi
+  claude --dangerously-skip-permissions "$@"
+}
+
 # Git worktree helper: remove a worktree
 gwr() {
   local name="$1"

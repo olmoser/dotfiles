@@ -163,7 +163,6 @@ alias get-ssl-pubkey='openssl s_client -connect the.host.name:443 | openssl x509
 alias yaml2json="ruby -ryaml -rjson -e 'puts JSON.pretty_generate(YAML.load(ARGF))'"
 
 # --- Claude ---
-alias claude-yolo="claude --dangerously-skip-permissions"
 alias copi='gh copilot suggest'
 
 # --- Python ---
