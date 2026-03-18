@@ -34,7 +34,11 @@ fi
 command -v terraform &>/dev/null && complete -C "$(command -v terraform)" terraform
 
 # History: flush to file after every command
-PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a"
+# Report CWD to terminal via OSC 7 (enables new tab/split in same directory)
+__report_cwd() {
+  printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${PWD}"
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a;__report_cwd"
 
 # Silence macOS bash deprecation warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
