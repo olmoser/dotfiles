@@ -22,12 +22,13 @@ else
   _shell_kind="bash"
 fi
 
-if command -v go &>/dev/null; then
-  [ -n "${GOROOT:-}" ] && export PATH="${GOROOT}/bin:${PATH}"
-  [ -n "${GOPATH:-}" ] && export PATH="${PATH}:${GOPATH}/bin"
-fi
+# Go binaries (go install puts binaries here by default)
+[ -d "${HOME}/go/bin" ] && export PATH="${PATH}:${HOME}/go/bin"
 
 [ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
+
+# direnv (must be before prompt init to avoid hook ordering issues)
+command -v direnv &>/dev/null && eval "$(direnv hook "${_shell_kind}")"
 
 command -v starship &>/dev/null && eval "$(starship init "${_shell_kind}")"
 command -v zoxide &>/dev/null && eval "$(zoxide init "${_shell_kind}" --cmd j)"

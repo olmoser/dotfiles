@@ -167,3 +167,6 @@ alias copi='gh copilot suggest'
 
 # --- Python ---
 alias python='python3'
+
+# --- pnpm ---
+alias pn='pnpm'

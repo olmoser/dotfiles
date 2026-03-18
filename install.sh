@@ -61,6 +61,7 @@ install_homebrew() {
 
 # --- Package Installation ---
 BREW_PACKAGES=(
+  direnv
   starship
   fzf
   sk        # skim
@@ -99,6 +100,7 @@ BREW_CASKS=(
 )
 
 APT_PACKAGES=(
+  direnv
   ripgrep
   bat
   fd-find
