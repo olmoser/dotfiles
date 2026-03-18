@@ -47,4 +47,7 @@ if command -v sk &>/dev/null; then
   unset sk_bindings _skim_ext
 fi
 
+# direnv (must be last — needs to wrap all other prompt hooks)
+command -v direnv &>/dev/null && eval "$(direnv hook "${_shell_kind}")"
+
 unset _shell_kind
