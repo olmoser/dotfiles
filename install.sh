@@ -74,6 +74,7 @@ BREW_PACKAGES=(
   jqp       # jq playground
   jnv       # interactive JSON viewer
   yq        # YAML processor (like jq for YAML)
+  gh        # GitHub CLI
   git-delta
   shellcheck
   btop
@@ -240,6 +241,14 @@ install_ubuntu_packages() {
   # git-delta
   install_apt_binary_if_available "delta" "git-delta" \
     "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
+
+  # GitHub CLI
+  if ! command -v gh &>/dev/null; then
+    info "Installing GitHub CLI..."
+    run sh -c 'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt-get update -qq && sudo apt-get install -y -qq gh'
+  else
+    ok "gh already installed"
+  fi
 
   # kubectl
   if ! command -v kubectl &>/dev/null; then

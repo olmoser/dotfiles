@@ -60,11 +60,11 @@ The install script detects your OS, installs packages, and symlinks config files
 
 ### Packages installed
 
-**Both platforms:** ripgrep, bat, fd, jq, yq, shellcheck, btop, kubectl, tmux, zoxide, starship, neovim
+**Both platforms:** ripgrep, bat, fd, jq, yq, shellcheck, btop, kubectl, tmux, zoxide, starship, neovim, gh
 
 **macOS (brew):** eza, sk (skim), jqp, jnv, git-delta, kubectx, pnpm, uv, neovim, difftastic, lazygit, lazydocker, dust, xh, hammerspoon, rectangle, google-cloud-sdk
 
-**Ubuntu:** Packages not in apt are installed via curl installers (starship, zoxide, kubectl, lazygit, lazydocker, pnpm, uv) or cargo (skim, eza, jnv, difftastic, dust, xh).
+**Ubuntu:** Packages not in apt are installed via curl installers (starship, zoxide, kubectl, gh, lazygit, lazydocker, pnpm, uv) or cargo (skim, eza, jnv, difftastic, dust, xh).
 
 ## Starship theme
 
