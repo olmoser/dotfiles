@@ -46,6 +46,18 @@ The install script detects your OS, installs packages, and symlinks config files
 | `RectangleConfig.json` | [Rectangle](https://rectangleapp.com) window snapping (macOS) |
 | `karabiner.json`    | [Karabiner-Elements](https://karabiner-elements.pqrs.org) key remapping (macOS) |
 
+### Display fix on wake (macOS)
+
+`fix-displays.sh` detects when external monitors revert to the wrong resolution or refresh rate after sleep and restores the correct config using [`displayplacer`](https://github.com/jakehilborn/displayplacer). It runs automatically via [`sleepwatcher`](https://www.bernhard-baehr.de/) — the `.wakeup` file tells sleepwatcher to execute the script on wake.
+
+**Setup:**
+
+1. `brew install displayplacer sleepwatcher` (handled by `install.sh`)
+2. While displays look correct, run `displayplacer list` and copy the command from the last line
+3. Paste it as the `CORRECT_CONFIG` value in `fix-displays.sh`
+4. Set `TARGET_RES` and `TARGET_HZ` to match your monitors
+5. Start sleepwatcher: `brew services start sleepwatcher`
+
 ### Packages installed
 
 **Both platforms:** ripgrep, bat, fd, jq, yq, shellcheck, btop, kubectl, tmux, zoxide, starship, neovim
