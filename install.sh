@@ -163,9 +163,15 @@ install_macos_packages() {
     eval "$(/usr/local/bin/brew shellenv)"
   fi
 
+  # Snapshot installed formulae and casks once (avoids per-package subprocess)
+  local -A installed_formulae=()
+  local -A installed_casks=()
+  while IFS= read -r p; do installed_formulae["$p"]=1; done < <(brew list --formula -1 2>/dev/null)
+  while IFS= read -r p; do installed_casks["$p"]=1; done < <(brew list --cask -1 2>/dev/null)
+
   info "Installing brew packages..."
   for pkg in "${BREW_PACKAGES[@]}"; do
-    if brew list "$pkg" &>/dev/null; then
+    if [[ -n "${installed_formulae[$pkg]:-}" ]]; then
       ok "${pkg} already installed"
     else
       info "Installing ${pkg}..."
@@ -175,7 +181,7 @@ install_macos_packages() {
 
   info "Installing brew casks..."
   for cask in "${BREW_CASKS[@]}"; do
-    if brew list --cask "$cask" &>/dev/null; then
+    if [[ -n "${installed_casks[$cask]:-}" ]]; then
       ok "${cask} already installed"
     else
       info "Installing ${cask}..."
