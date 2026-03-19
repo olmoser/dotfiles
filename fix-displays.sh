@@ -11,11 +11,12 @@ set -euo pipefail
 #   6. brew services start sleepwatcher
 
 # ── CONFIG ────────────────────────────────────────────────────────────────────
-TARGET_RES="3840x2160"        # Expected resolution for each display
-TARGET_HZ="144"               # Expected refresh rate
+TARGET_RES="3008x1692"        # Expected resolution for each display
+TARGET_HZ="120"               # Expected refresh rate
 
 # Paste your `displayplacer list` command here (the last line of its output):
-CORRECT_CONFIG='displayplacer "id:XXXXXXXX res:3840x2160 hz:144 color_depth:8 scaling:off origin:(0,0) degree:0" "id:YYYYYYYY res:3840x2160 hz:144 color_depth:8 scaling:off origin:(3840,0) degree:0"'
+CORRECT_CONFIG='displayplacer "id:0D23A714-7A14-4B47-98B2-F4C59F495484 res:3008x1692 hz:120 color_depth:8 enabled:true scaling:on origin:(0,0) degree:0" "id:E4948D60-41C4-435F-95F6-31E7B56D596D res:3008x1692 hz:120 color_depth:8 enabled:true scaling:on origin:(3008,0) degree:0'
+
 # ─────────────────────────────────────────────────────────────────────────────
 
 LOG_FILE="${HOME}/.fix-displays.log"
