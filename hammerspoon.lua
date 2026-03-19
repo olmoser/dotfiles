@@ -23,7 +23,7 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "5", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "M", function()
-  toggle_application("Mail")
+  toggle_application("Spark Desktop")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "4", function()
@@ -39,12 +39,7 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "2", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "3", function()
-	-- toggle_application("Slack")
 	toggle_application("Slack")
-end)
-
-hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "D", function()
-  toggle_application("DataGrip")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "G", function()
@@ -52,7 +47,11 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "G", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "C", function()
-  hs.urlevent.openURL("https://console.cloud.google.com/home/dashboard?authuser=0&project=sqnc-wrkld-ugc-monitoring&supportedpurview=project")
+  hs.urlevent.openURL("https://console.cloud.google.com/home/dashboard?authuser=0&supportedpurview=project")
+end)
+
+hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "D", function()
+  hs.urlevent.openURL("https://github.com/settings/personal-access-tokens")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "F", function()
