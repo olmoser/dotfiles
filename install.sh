@@ -492,7 +492,11 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"
 
-  # Ghostty config (platform-dependent path)
+  # Global gitignore
+  symlink "${DOTFILES_DIR}/.gitignore_global" "${HOME}/.gitignore_global"
+  run git config --global core.excludesfile "${HOME}/.gitignore_global"
+
+  # Platform-dependent config
   case "$OS" in
     macos)
       symlink "${DOTFILES_DIR}/ghostty.config" \
@@ -501,6 +505,8 @@ create_symlinks() {
         "${HOME}/.hammerspoon/init.lua"
       symlink "${DOTFILES_DIR}/RectangleConfig.json" \
         "${HOME}/Library/Application Support/com.knollsoft.Rectangle/RectangleConfig.json"
+      symlink "${DOTFILES_DIR}/.wakeup"          "${HOME}/.wakeup"
+      symlink "${DOTFILES_DIR}/fix-displays.sh"  "${HOME}/fix-displays.sh"
       ;;
     ubuntu)
       symlink "${DOTFILES_DIR}/ghostty.config" \
