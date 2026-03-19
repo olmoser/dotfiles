@@ -17,5 +17,8 @@ lazy-lock.json
 # Editors
 .idea
 
+# Runtime logs
+.fix-displays.log
+
 # OS
 .DS_Store

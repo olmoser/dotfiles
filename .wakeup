@@ -1,1 +1,2 @@
-/Users/omoser/fix-displays.sh
+#!/bin/bash
+"${HOME}/fix-displays.sh"
