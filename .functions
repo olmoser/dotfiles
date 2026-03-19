@@ -324,7 +324,12 @@ gwt() {
 
   git worktree add -b "${type}/${name}" "${dest_dir}" "$base"
   git worktree list
-  cp -r .claude .env ./*-sa.json .devcontainer "${dest_dir}" 2>/dev/null || true
+  for f in .claude .env .devcontainer; do
+    [ -e "$f" ] && cp -r "$f" "${dest_dir}/" 2>/dev/null
+  done
+  for f in ./*-sa.json; do
+    [ -f "$f" ] && cp "$f" "${dest_dir}/" 2>/dev/null
+  done
   cd "${dest_dir}" || return
 }
 
@@ -352,14 +357,19 @@ gwj() {
   if git rev-parse --is-inside-work-tree &>/dev/null; then
     lines=$(git worktree list)
   else
+    if ! command -v fd &>/dev/null; then
+      echo "gwj requires fd for scanning repos outside a git worktree" >&2
+      return 1
+    fi
     local repo_dirs
-    repo_dirs=$(fd -H -t d '^\.git$' --max-depth 2 --prune 2>/dev/null)
+    repo_dirs=$(fd -HI -t d '^\.git$' --max-depth 2 --prune 2>/dev/null)
     if [ -z "$repo_dirs" ]; then
       echo "No git repos found in $(pwd)" >&2
       return 1
     fi
     while IFS= read -r gitdir; do
-      local repo="${gitdir%.git/}"
+      local repo
+      repo="$(dirname "$gitdir")"
       lines+=$(git -C "$repo" worktree list 2>/dev/null)
       lines+=$'\n'
     done <<< "$repo_dirs"
@@ -376,7 +386,7 @@ gwj() {
   [ -z "$selected" ] && return 0
 
   local target
-  target=$(echo "$selected" | awk '{print $1}')
+  target="${selected%%  *}"
   cd "$target" || return 1
 }
 

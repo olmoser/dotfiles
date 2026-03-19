@@ -43,7 +43,10 @@ command -v terraform &>/dev/null && complete -C "$(command -v terraform)" terraf
 # History: flush to file after every command
 # Report CWD to terminal via OSC 7 (enables new tab/split in same directory)
 __report_cwd() {
-  printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${PWD}"
+  local encoded
+  encoded="$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe='/'))" "$PWD" 2>/dev/null)" || encoded="$PWD"
+  # shellcheck disable=SC1003
+  printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${encoded}"
 }
 PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a;__report_cwd"
 
