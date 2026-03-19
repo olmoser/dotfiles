@@ -74,6 +74,7 @@ BREW_PACKAGES=(
   jqp       # jq playground
   jnv       # interactive JSON viewer
   yq        # YAML processor (like jq for YAML)
+  fnm       # fast Node manager
   gh        # GitHub CLI
   git-delta
   shellcheck
@@ -237,6 +238,14 @@ install_ubuntu_packages() {
   # skim
   install_cargo_binary_if_missing "sk" "skim" \
     "skim requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+  # fnm (fast Node manager)
+  if ! command -v fnm &>/dev/null; then
+    info "Installing fnm..."
+    run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
+  else
+    ok "fnm already installed"
+  fi
 
   # git-delta
   install_apt_binary_if_available "delta" "git-delta" \
