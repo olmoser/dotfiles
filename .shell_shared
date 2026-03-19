@@ -32,7 +32,8 @@ esac
 
 [ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
 
-# fnm (fast Node manager)
+# fnm (fast Node manager) — curl installer puts it in ~/.local/share/fnm
+[ -d "${HOME}/.local/share/fnm" ] && export PATH="${HOME}/.local/share/fnm:${PATH}"
 if command -v fnm &>/dev/null; then
   eval "$(fnm env --use-on-cd --shell "${_shell_kind}")"
 fi
