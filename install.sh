@@ -239,12 +239,12 @@ install_ubuntu_packages() {
   install_cargo_binary_if_missing "sk" "skim" \
     "skim requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
-  # fnm (fast Node manager)
-  if ! command -v fnm &>/dev/null; then
+  # fnm (fast Node manager) — installer puts binary in ~/.local/share/fnm
+  if command -v fnm &>/dev/null || [ -x "${HOME}/.local/share/fnm/fnm" ]; then
+    ok "fnm already installed"
+  else
     info "Installing fnm..."
     run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
-  else
-    ok "fnm already installed"
   fi
 
   # git-delta
