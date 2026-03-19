@@ -327,11 +327,11 @@ install_ubuntu_packages() {
     "difftastic requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
   # Google Cloud SDK
-  if ! command -v gcloud &>/dev/null; then
+  if command -v gcloud &>/dev/null || [ -d "${HOME}/google-cloud-sdk" ]; then
+    ok "gcloud already installed"
+  else
     info "Installing Google Cloud SDK..."
     run sh -c 'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts'
-  else
-    ok "gcloud already installed"
   fi
 
   # lazygit
