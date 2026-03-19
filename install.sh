@@ -91,6 +91,8 @@ BREW_PACKAGES=(
   xh        # modern httpie/curl
   zsh-autosuggestions
   zsh-syntax-highlighting
+  displayplacer
+  sleepwatcher
 )
 
 BREW_CASKS=(
