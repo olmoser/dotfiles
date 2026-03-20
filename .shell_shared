@@ -10,34 +10,33 @@ for file in ~/.{path,exports,aliases,functions,extra}; do
 done
 unset file
 
-if [ -f /opt/homebrew/bin/brew ]; then
-  eval "$(/opt/homebrew/bin/brew shellenv)"
-elif [ -f /usr/local/bin/brew ]; then
-  eval "$(/usr/local/bin/brew shellenv)"
-fi
-
 if [ -n "${ZSH_VERSION:-}" ]; then
   _shell_kind="zsh"
 else
   _shell_kind="bash"
 fi
 
-if command -v pyenv &>/dev/null; then
-  export PYENV_ROOT="${HOME}/.pyenv"
-  case ":${PATH}:" in
-    *":${PYENV_ROOT}/bin:"*) ;;
-    *) export PATH="${PYENV_ROOT}/bin:${PATH}" ;;
-  esac
-  eval "$(pyenv init -)"
-  command -v pyenv-virtualenv-init &>/dev/null && eval "$(pyenv virtualenv-init -)"
-fi
+# Go binaries (go install puts binaries here by default)
+[ -d "${HOME}/go/bin" ] && export PATH="${PATH}:${HOME}/go/bin"
 
-if command -v go &>/dev/null; then
-  [ -n "${GOROOT:-}" ] && export PATH="${GOROOT}/bin:${PATH}"
-  [ -n "${GOPATH:-}" ] && export PATH="${PATH}:${GOPATH}/bin"
+# pnpm
+if [ -d "${HOME}/Library/pnpm" ]; then
+  export PNPM_HOME="${HOME}/Library/pnpm"
+elif [ -d "${HOME}/.local/share/pnpm" ]; then
+  export PNPM_HOME="${HOME}/.local/share/pnpm"
 fi
+[ -n "${PNPM_HOME:-}" ] && case ":${PATH}:" in
+  *":${PNPM_HOME}:"*) ;;
+  *) export PATH="${PNPM_HOME}:${PATH}" ;;
+esac
 
 [ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
+
+# fnm (fast Node manager) — curl installer puts it in ~/.local/share/fnm
+[ -d "${HOME}/.local/share/fnm" ] && export PATH="${HOME}/.local/share/fnm:${PATH}"
+if command -v fnm &>/dev/null; then
+  eval "$(fnm env --use-on-cd --shell "${_shell_kind}")"
+fi
 
 command -v starship &>/dev/null && eval "$(starship init "${_shell_kind}")"
 command -v zoxide &>/dev/null && eval "$(zoxide init "${_shell_kind}" --cmd j)"
@@ -55,5 +54,8 @@ if command -v sk &>/dev/null; then
   done
   unset sk_bindings _skim_ext
 fi
+
+# direnv (must be last — needs to wrap all other prompt hooks)
+command -v direnv &>/dev/null && eval "$(direnv hook "${_shell_kind}")"
 
 unset _shell_kind

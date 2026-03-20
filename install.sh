@@ -61,6 +61,7 @@ install_homebrew() {
 
 # --- Package Installation ---
 BREW_PACKAGES=(
+  direnv
   starship
   fzf
   sk        # skim
@@ -73,6 +74,8 @@ BREW_PACKAGES=(
   jqp       # jq playground
   jnv       # interactive JSON viewer
   yq        # YAML processor (like jq for YAML)
+  fnm       # fast Node manager
+  gh        # GitHub CLI
   git-delta
   shellcheck
   btop
@@ -90,6 +93,8 @@ BREW_PACKAGES=(
   xh        # modern httpie/curl
   zsh-autosuggestions
   zsh-syntax-highlighting
+  displayplacer
+  sleepwatcher
 )
 
 BREW_CASKS=(
@@ -99,6 +104,7 @@ BREW_CASKS=(
 )
 
 APT_PACKAGES=(
+  direnv
   ripgrep
   bat
   fd-find
@@ -159,9 +165,15 @@ install_macos_packages() {
     eval "$(/usr/local/bin/brew shellenv)"
   fi
 
+  # Snapshot installed formulae and casks once (avoids per-package subprocess)
+  local -A installed_formulae=()
+  local -A installed_casks=()
+  while IFS= read -r p; do installed_formulae["$p"]=1; done < <(brew list --formula -1 2>/dev/null)
+  while IFS= read -r p; do installed_casks["$p"]=1; done < <(brew list --cask -1 2>/dev/null)
+
   info "Installing brew packages..."
   for pkg in "${BREW_PACKAGES[@]}"; do
-    if brew list "$pkg" &>/dev/null; then
+    if [[ -n "${installed_formulae[$pkg]:-}" ]]; then
       ok "${pkg} already installed"
     else
       info "Installing ${pkg}..."
@@ -171,7 +183,7 @@ install_macos_packages() {
 
   info "Installing brew casks..."
   for cask in "${BREW_CASKS[@]}"; do
-    if brew list --cask "$cask" &>/dev/null; then
+    if [[ -n "${installed_casks[$cask]:-}" ]]; then
       ok "${cask} already installed"
     else
       info "Installing ${cask}..."
@@ -227,9 +239,25 @@ install_ubuntu_packages() {
   install_cargo_binary_if_missing "sk" "skim" \
     "skim requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
+  # fnm (fast Node manager) — installer puts binary in ~/.local/share/fnm
+  if command -v fnm &>/dev/null || [ -x "${HOME}/.local/share/fnm/fnm" ]; then
+    ok "fnm already installed"
+  else
+    info "Installing fnm..."
+    run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
+  fi
+
   # git-delta
   install_apt_binary_if_available "delta" "git-delta" \
     "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
+
+  # GitHub CLI
+  if ! command -v gh &>/dev/null; then
+    info "Installing GitHub CLI..."
+    run sh -c 'curl -fsSL https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo dd of=/usr/share/keyrings/githubcli-archive-keyring.gpg && sudo chmod go+r /usr/share/keyrings/githubcli-archive-keyring.gpg && echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list > /dev/null && sudo apt-get update -qq && sudo apt-get install -y -qq gh'
+  else
+    ok "gh already installed"
+  fi
 
   # kubectl
   if ! command -v kubectl &>/dev/null; then
@@ -299,11 +327,11 @@ install_ubuntu_packages() {
     "difftastic requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
   # Google Cloud SDK
-  if ! command -v gcloud &>/dev/null; then
+  if command -v gcloud &>/dev/null || [ -d "${HOME}/google-cloud-sdk" ]; then
+    ok "gcloud already installed"
+  else
     info "Installing Google Cloud SDK..."
     run sh -c 'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts'
-  else
-    ok "gcloud already installed"
   fi
 
   # lazygit
@@ -488,7 +516,11 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"
 
-  # Ghostty config (platform-dependent path)
+  # Global gitignore
+  symlink "${DOTFILES_DIR}/.gitignore_global" "${HOME}/.gitignore_global"
+  run git config --global core.excludesfile "${HOME}/.gitignore_global"
+
+  # Platform-dependent config
   case "$OS" in
     macos)
       symlink "${DOTFILES_DIR}/ghostty.config" \
@@ -497,6 +529,8 @@ create_symlinks() {
         "${HOME}/.hammerspoon/init.lua"
       symlink "${DOTFILES_DIR}/RectangleConfig.json" \
         "${HOME}/Library/Application Support/com.knollsoft.Rectangle/RectangleConfig.json"
+      symlink "${DOTFILES_DIR}/.wakeup"          "${HOME}/.wakeup"
+      symlink "${DOTFILES_DIR}/fix-displays.sh"  "${HOME}/fix-displays.sh"
       ;;
     ubuntu)
       symlink "${DOTFILES_DIR}/ghostty.config" \

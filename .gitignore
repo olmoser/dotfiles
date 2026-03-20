@@ -1,7 +1,24 @@
+# Backups created by install.sh
 /.bak/
-.idea
 *.bak
+
+# Generated / local-only
 .devcontainer
 .fzf.bash
 .fzf.zsh
 lazy-lock.json
+
+# Secrets and environment files
+.env
+.env.*
+.devc.env
+.devc.env.example
+
+# Editors
+.idea
+
+# Runtime logs
+.fix-displays.log
+
+# OS
+.DS_Store

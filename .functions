@@ -324,8 +324,70 @@ gwt() {
 
   git worktree add -b "${type}/${name}" "${dest_dir}" "$base"
   git worktree list
-  cp -r .claude .env ./*-sa.json .devcontainer "${dest_dir}" 2>/dev/null || true
+  for f in .claude .env .devcontainer; do
+    [ -e "$f" ] && cp -r "$f" "${dest_dir}/" 2>/dev/null
+  done
+  for f in ./*-sa.json; do
+    [ -f "$f" ] && cp "$f" "${dest_dir}/" 2>/dev/null
+  done
   cd "${dest_dir}" || return
+}
+
+# Claude with --dangerously-skip-permissions; confirm if not in a devcontainer
+function claude-yolo {
+  if [ ! -f /.dockerenv ] && [ -z "${REMOTE_CONTAINERS:-}" ] && [ -z "${CODESPACES:-}" ]; then
+    echo "WARNING: --dangerously-skip-permissions outside a devcontainer!"
+    printf "Continue? [y/N] "
+    read -r answer
+    [[ "$answer" =~ ^[Yy]$ ]] || return 1
+  fi
+  claude --dangerously-skip-permissions "$@"
+}
+
+# Git worktree jump: fuzzy-select a worktree and cd into it
+# Inside a git repo: shows worktrees for that repo
+# Outside a git repo: scans subdirectories for all worktrees
+gwj() {
+  if ! command -v fzf &>/dev/null; then
+    echo "gwj requires fzf" >&2
+    return 1
+  fi
+
+  local lines=""
+  if git rev-parse --is-inside-work-tree &>/dev/null; then
+    lines=$(git worktree list)
+  else
+    if ! command -v fd &>/dev/null; then
+      echo "gwj requires fd for scanning repos outside a git worktree" >&2
+      return 1
+    fi
+    local repo_dirs
+    repo_dirs=$(fd -HI -t d '^\.git$' --max-depth 2 --prune 2>/dev/null)
+    if [ -z "$repo_dirs" ]; then
+      echo "No git repos found in $(pwd)" >&2
+      return 1
+    fi
+    while IFS= read -r gitdir; do
+      local repo
+      repo="$(dirname "$gitdir")"
+      lines+=$(git -C "$repo" worktree list 2>/dev/null)
+      lines+=$'\n'
+    done <<< "$repo_dirs"
+  fi
+
+  lines=$(echo "$lines" | sed '/^$/d' | sort -u)
+  if [ -z "$lines" ]; then
+    echo "No worktrees found" >&2
+    return 1
+  fi
+
+  local selected
+  selected=$(echo "$lines" | fzf --prompt="worktree> " --height=~40% --reverse)
+  [ -z "$selected" ] && return 0
+
+  local target
+  target="${selected%%  *}"
+  cd "$target" || return 1
 }
 
 # Git worktree helper: remove a worktree

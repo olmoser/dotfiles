@@ -1,13 +1,6 @@
 #!/usr/bin/env bash
 # shellcheck disable=SC1090,SC1091
 
-# Shared shell bootstrap (bash + zsh)
-if [ -f "${HOME}/.shell_shared" ]; then
-  source "${HOME}/.shell_shared"
-else
-  echo "[WARN] ~/.shell_shared not found. Run install.sh to set up dotfiles." >&2
-fi
-
 # Shell options
 shopt -s nocaseglob   # Case-insensitive globbing
 shopt -s histappend   # Append to history, don't overwrite
@@ -17,7 +10,14 @@ for option in autocd globstar; do
   shopt -s "$option" 2>/dev/null
 done
 
-# Bash completion
+# Homebrew (must be early — bash completion and .shell_shared depend on it)
+if [ -f /opt/homebrew/bin/brew ]; then
+  eval "$(/opt/homebrew/bin/brew shellenv)"
+elif [ -f /usr/local/bin/brew ]; then
+  eval "$(/usr/local/bin/brew shellenv)"
+fi
+
+# Bash completion (must be before .shell_shared — tools there register completions)
 if command -v brew &>/dev/null; then
   brew_prefix="$(brew --prefix)"
   [ -r "${brew_prefix}/etc/profile.d/bash_completion.sh" ] && source "${brew_prefix}/etc/profile.d/bash_completion.sh"
@@ -27,6 +27,13 @@ elif [ -f /etc/bash_completion ]; then
   source /etc/bash_completion
 fi
 
+# Shared shell bootstrap (bash + zsh)
+if [ -f "${HOME}/.shell_shared" ]; then
+  source "${HOME}/.shell_shared"
+else
+  echo "[WARN] ~/.shell_shared not found. Run install.sh to set up dotfiles." >&2
+fi
+
 # SSH hostname tab completion
 [ -e "${HOME}/.ssh/config" ] && complete -o "default" -o "nospace" -W "$(grep "^Host" ~/.ssh/config | grep -v "[?*]" | cut -d " " -f2 | tr ' ' '\n')" scp sftp ssh
 
@@ -34,7 +41,14 @@ fi
 command -v terraform &>/dev/null && complete -C "$(command -v terraform)" terraform
 
 # History: flush to file after every command
-PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a"
+# Report CWD to terminal via OSC 7 (enables new tab/split in same directory)
+__report_cwd() {
+  local encoded
+  encoded="$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.argv[1], safe='/'))" "$PWD" 2>/dev/null)" || encoded="$PWD"
+  # shellcheck disable=SC1003
+  printf '\e]7;file://%s%s\e\\' "${HOSTNAME}" "${encoded}"
+}
+PROMPT_COMMAND="${PROMPT_COMMAND:+${PROMPT_COMMAND};}history -a;__report_cwd"
 
 # Silence macOS bash deprecation warning
 export BASH_SILENCE_DEPRECATION_WARNING=1
