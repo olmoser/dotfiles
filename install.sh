@@ -202,10 +202,13 @@ install_ubuntu_packages() {
     trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
   fi
 
-  # Vim PPA (Ubuntu 22.04 ships Vim 8.x; need 9.0+ for habamax colorscheme etc.)
-  if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
-    info "Adding Vim PPA..."
-    run sudo add-apt-repository -y ppa:jonathonf/vim
+  # Vim PPA (Ubuntu < 24.04 ships Vim 8.x; need 9.0+ for habamax colorscheme)
+  _ubuntu_ver="$(lsb_release -rs 2>/dev/null || echo "0")"
+  if [ "$(printf '%s\n' "24.04" "$_ubuntu_ver" | sort -V | head -1)" != "$_ubuntu_ver" ]; then
+    if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
+      info "Adding Vim PPA (system vim too old)..."
+      run sudo add-apt-repository -y ppa:jonathonf/vim
+    fi
   fi
 
   info "Updating apt cache..."
@@ -319,6 +322,7 @@ install_ubuntu_packages() {
   else
     ok "yq already installed"
   fi
+
 
   # fzf (from git — apt version is too old, ~/.fzf/bin takes precedence via .shell_shared)
   if [ ! -d "${HOME}/.fzf" ]; then

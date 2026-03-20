@@ -33,7 +33,7 @@ set pastetoggle=<F2>
 filetype plugin indent on
 syntax on
 set termguicolors
-colorscheme habamax
+silent! colorscheme habamax
 highlight Normal ctermbg=NONE guibg=NONE
 
 let g:vim_json_syntax_conceal = 0
