@@ -1,41 +1,41 @@
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "S", function()
-  toggle_application("Spotify")
+	toggle_application("Spotify")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "T", function()
-  toggle_application("Trello")
+	toggle_application("Trello")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "O", function()
-  toggle_application("Microsoft Outlook")
+	toggle_application("Microsoft Outlook")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "P", function()
-  toggle_application("PyCharm")
+	toggle_application("PyCharm")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "w", function()
-  toggle_application("Webstorm")
+	toggle_application("Webstorm")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "5", function()
-  toggle_application("Notes")
+	toggle_application("Notes")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "M", function()
-  toggle_application("Spark Desktop")
+	toggle_application("Spark Desktop")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "4", function()
-  toggle_application("WhatsApp")
+	toggle_application("WhatsApp")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "1", function()
-  toggle_application("Ghostty")
+	toggle_application("Ghostty")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "2", function()
-  toggle_application("Google Chrome")
+	toggle_application("Google Chrome")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "3", function()
@@ -43,19 +43,30 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "3", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "G", function()
-  toggle_application("GoLand")
+	toggle_application("GoLand")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "C", function()
-  hs.urlevent.openURL("https://console.cloud.google.com/home/dashboard?authuser=0&supportedpurview=project")
+	hs.urlevent.openURL("https://console.cloud.google.com/home/dashboard?authuser=0&supportedpurview=project")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "D", function()
-  hs.urlevent.openURL("https://github.com/settings/personal-access-tokens")
+	local button, value = hs.dialog.textPrompt(
+		"Create new PAT",           -- title
+		"Enter the PAT name:", -- message
+		"claude-code-",                   -- default value
+		"Open",               -- button 1 label
+		"Cancel"              -- button 2 label
+	)
+
+	if button == "Open" and value ~= "" then
+		local url = "https://github.com/settings/personal-access-tokens/new?target_name=seeqnc&repo_access=selected&repos=seeqnc/az-vm-tui&contents=write&pull_requests=write&expires_in=366&name=" .. hs.http.encodeForQuery(value)
+		hs.urlevent.openURL(url)
+	end
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "F", function()
-  toggle_application("Finder")
+	toggle_application("Finder")
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "-", function()
@@ -69,31 +80,31 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "0", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt", "ctrl"}, "R", function()
-  hs.reload()
+	hs.reload()
 end)
 
 function toggle_application(name)
-  local app = hs.application.get(name)
-  if not app then
-    print("Launching app " .. name)
-    hs.application.launchOrFocus(name)
-    return
-  end
+	local app = hs.application.get(name)
+	if not app then
+		print("Launching app " .. name)
+		hs.application.launchOrFocus(name)
+		return
+	end
 
-  local frontmost = hs.application.frontmostApplication()
-  local is_frontmost = frontmost and frontmost:name() == name
+	local frontmost = hs.application.frontmostApplication()
+	local is_frontmost = frontmost and frontmost:name() == name
 
-  if app:isHidden() or not is_frontmost then
-    print("Focusing app " .. name)
-    hs.application.launchOrFocus(name)
-    app = hs.application.get(name)
-    if app then
-      app:activate(true)
-    end
-  else
-    print("Hiding app " .. name)
-    app:hide()
-  end
+	if app:isHidden() or not is_frontmost then
+		print("Focusing app " .. name)
+		hs.application.launchOrFocus(name)
+		app = hs.application.get(name)
+		if app then
+			app:activate(true)
+		end
+	else
+		print("Hiding app " .. name)
+		app:hide()
+	end
 end
 
 hs.alert.show("Config loaded")
