@@ -542,12 +542,12 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/.exports"      "${HOME}/.exports"
   symlink "${DOTFILES_DIR}/.functions"    "${HOME}/.functions"
   symlink "${DOTFILES_DIR}/.vimrc"        "${HOME}/.vimrc"
+  symlink "${DOTFILES_DIR}/.gitconfig"   "${HOME}/.gitconfig"
   symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"
 
-  # Global gitignore
+  # Global gitignore (path configured in .gitconfig via core.excludesfile)
   symlink "${DOTFILES_DIR}/.gitignore_global" "${HOME}/.gitignore_global"
-  run git config --global core.excludesfile "${HOME}/.gitignore_global"
 
   # Platform-dependent config
   case "$OS" in
