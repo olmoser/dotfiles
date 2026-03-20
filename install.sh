@@ -246,6 +246,21 @@ install_ubuntu_packages() {
     run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
   fi
 
+  # Activate fnm in the current shell and install Node LTS so that npm/npx
+  # resolve to a user-scoped installation (no sudo needed for global installs)
+  if ! command -v fnm &>/dev/null && [ -x "${HOME}/.local/share/fnm/fnm" ]; then
+    export PATH="${HOME}/.local/share/fnm:${PATH}"
+  fi
+  if command -v fnm &>/dev/null; then
+    eval "$(fnm env)"
+    if ! fnm ls | grep -q lts-latest; then
+      info "Installing Node LTS via fnm..."
+      run fnm install --lts
+    fi
+    run fnm use lts-latest
+    ok "Node $(node --version) active via fnm"
+  fi
+
   # git-delta
   install_apt_binary_if_available "delta" "git-delta" \
     "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
