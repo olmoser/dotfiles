@@ -114,7 +114,6 @@ APT_PACKAGES=(
   nethogs
   tmux
   neovim
-  yq
   zsh-autosuggestions
   zsh-syntax-highlighting
 )
@@ -247,6 +246,21 @@ install_ubuntu_packages() {
     run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
   fi
 
+  # Activate fnm in the current shell and install Node LTS so that npm/npx
+  # resolve to a user-scoped installation (no sudo needed for global installs)
+  if ! command -v fnm &>/dev/null && [ -x "${HOME}/.local/share/fnm/fnm" ]; then
+    export PATH="${HOME}/.local/share/fnm:${PATH}"
+  fi
+  if command -v fnm &>/dev/null; then
+    eval "$(fnm env)"
+    if ! fnm ls | grep -q lts-latest; then
+      info "Installing Node LTS via fnm..."
+      run fnm install --lts
+    fi
+    run fnm use lts-latest
+    ok "Node $(node --version) active via fnm"
+  fi
+
   # git-delta
   install_apt_binary_if_available "delta" "git-delta" \
     "git-delta not available in apt. Install manually: https://github.com/dandavison/delta/releases"
@@ -290,6 +304,14 @@ install_ubuntu_packages() {
   # jnv
   install_cargo_binary_if_missing "jnv" "jnv" \
     "jnv requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+  # yq (GitHub release — not available in apt on Ubuntu < 24.04)
+  if ! command -v yq &>/dev/null; then
+    info "Installing yq..."
+    run sh -c 'YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r .tag_name) && curl -fsSLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" && sudo install /tmp/yq /usr/local/bin/yq && rm /tmp/yq'
+  else
+    ok "yq already installed"
+  fi
 
   # fzf (from git — apt version is too old)
   if dpkg -l fzf &>/dev/null 2>&1; then

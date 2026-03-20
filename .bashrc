@@ -26,15 +26,6 @@ for gcloud_inc in \
 done
 unset gcloud_inc
 
-# Add ~/bin and ~/.local/bin to PATH (with dedup guard)
-for p in "${HOME}/bin" "${HOME}/.local/bin"; do
-  case ":${PATH}:" in
-    *":${p}:"*) ;;
-    *) export PATH="${p}:${PATH}" ;;
-  esac
-done
-unset p
-
 # Cargo environment (conditional)
 [ -f "${HOME}/.cargo/env" ] && source "${HOME}/.cargo/env"
 
