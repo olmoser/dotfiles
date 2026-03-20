@@ -7,15 +7,19 @@ $git_branch\
 $git_state\
 $git_status\
 $git_metrics\
-
 $cmd_duration\
 $status\
+
 $fill\
+
 $kubernetes\
+
 $line_break\
+
 $python\
 $nodejs\
 $username\
+$hostname\
 $time\
 $character"""
 
@@ -31,7 +35,8 @@ symbol = " "
 
 [hostname]
 ssh_only = true
-format = '[$ssh_symbol](bold blue) on [$hostname](bold red) '
+ssh_symbol = " "
+format = ' [$ssh_symbol](bold red)[$hostname](bold red) '
 trim_at = '.companyname.com'
 disabled = false
 
