@@ -114,7 +114,6 @@ APT_PACKAGES=(
   nethogs
   tmux
   neovim
-  yq
   zsh-autosuggestions
   zsh-syntax-highlighting
 )
@@ -290,6 +289,14 @@ install_ubuntu_packages() {
   # jnv
   install_cargo_binary_if_missing "jnv" "jnv" \
     "jnv requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+
+  # yq (GitHub release — not available in apt on Ubuntu < 24.04)
+  if ! command -v yq &>/dev/null; then
+    info "Installing yq..."
+    run sh -c 'YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r .tag_name) && curl -fsSLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" && sudo install /tmp/yq /usr/local/bin/yq && rm /tmp/yq'
+  else
+    ok "yq already installed"
+  fi
 
   # fzf (from git — apt version is too old)
   if dpkg -l fzf &>/dev/null 2>&1; then
