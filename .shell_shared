@@ -16,6 +16,15 @@ else
   _shell_kind="bash"
 fi
 
+# ~/bin and ~/.local/bin
+for _p in "${HOME}/bin" "${HOME}/.local/bin"; do
+  [ -d "$_p" ] && case ":${PATH}:" in
+    *":${_p}:"*) ;;
+    *) export PATH="${_p}:${PATH}" ;;
+  esac
+done
+unset _p
+
 # Go binaries (go install puts binaries here by default)
 [ -d "${HOME}/go/bin" ] && export PATH="${PATH}:${HOME}/go/bin"
 
