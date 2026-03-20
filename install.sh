@@ -313,11 +313,7 @@ install_ubuntu_packages() {
     ok "yq already installed"
   fi
 
-  # fzf (from git — apt version is too old)
-  if dpkg -l fzf &>/dev/null 2>&1; then
-    info "Removing apt version of fzf (too old)..."
-    run sudo apt-get remove -y -qq fzf
-  fi
+  # fzf (from git — apt version is too old, ~/.fzf/bin takes precedence via .shell_shared)
   if [ ! -d "${HOME}/.fzf" ]; then
     info "Installing fzf from git..."
     run git clone --depth 1 https://github.com/junegunn/fzf.git "${HOME}/.fzf"
