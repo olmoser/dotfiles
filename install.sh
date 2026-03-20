@@ -113,6 +113,7 @@ APT_PACKAGES=(
   btop
   nethogs
   tmux
+  vim
   neovim
   zsh-autosuggestions
   zsh-syntax-highlighting
@@ -199,6 +200,12 @@ install_ubuntu_packages() {
     while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
     SUDO_KEEPALIVE_PID=$!
     trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
+  fi
+
+  # Vim PPA (Ubuntu 22.04 ships Vim 8.x; need 9.0+ for habamax colorscheme etc.)
+  if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
+    info "Adding Vim PPA..."
+    run sudo add-apt-repository -y ppa:jonathonf/vim
   fi
 
   info "Updating apt cache..."
