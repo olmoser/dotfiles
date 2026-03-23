@@ -2,9 +2,6 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "S", function()
 	toggle_application("Spotify")
 end)
 
-hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "T", function()
-	toggle_application("Trello")
-end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "O", function()
 	toggle_application("Microsoft Outlook")

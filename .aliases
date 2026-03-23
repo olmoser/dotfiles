@@ -170,3 +170,6 @@ alias python='python3'
 
 # --- pnpm ---
 alias pn='pnpm'
+
+# --- misc stuff ---
+alias gg='go-grip'
