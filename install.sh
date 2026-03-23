@@ -542,6 +542,7 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/.exports"      "${HOME}/.exports"
   symlink "${DOTFILES_DIR}/.functions"    "${HOME}/.functions"
   symlink "${DOTFILES_DIR}/.vimrc"        "${HOME}/.vimrc"
+  symlink "${DOTFILES_DIR}/.tmux.conf"    "${HOME}/.tmux.conf"
   symlink "${DOTFILES_DIR}/.gitconfig"   "${HOME}/.gitconfig"
   symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"

@@ -32,7 +32,14 @@ set pastetoggle=<F2>
 
 filetype plugin indent on
 syntax on
+
+" Enable true-color escape sequences for tmux compatibility
+if exists('+termguicolors') && !has('gui_running')
+  let &t_8f = "\<Esc>[38;2;%lu;%lu;%lum"
+  let &t_8b = "\<Esc>[48;2;%lu;%lu;%lum"
+endif
 set termguicolors
+
 silent! colorscheme habamax
 highlight Normal ctermbg=NONE guibg=NONE
 
