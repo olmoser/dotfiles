@@ -322,7 +322,18 @@ gwt() {
     fi
   fi
 
-  git worktree add -b "${type}/${name}" "${dest_dir}" "$base"
+  # Resolve base: try local ref first, then origin/<base>
+  local resolved_base="$base"
+  if ! git rev-parse --verify "$base" &>/dev/null; then
+    if git rev-parse --verify "origin/$base" &>/dev/null; then
+      resolved_base="origin/$base"
+    else
+      echo "Error: base ref '$base' not found locally or on origin. Run: git fetch origin"
+      return 1
+    fi
+  fi
+
+  git worktree add -b "${type}/${name}" "${dest_dir}" "$resolved_base"
   git worktree list
   for f in .claude .env .devcontainer; do
     [ -e "$f" ] && cp -r "$f" "${dest_dir}/" 2>/dev/null
