@@ -204,7 +204,7 @@ install_ubuntu_packages() {
 
   # Vim PPA (Ubuntu < 24.04 ships Vim 8.x; need 9.0+ for habamax colorscheme)
   _ubuntu_ver="$(lsb_release -rs 2>/dev/null || echo "0")"
-  if [ "$(printf '%s\n' "24.04" "$_ubuntu_ver" | sort -V | head -1)" != "$_ubuntu_ver" ]; then
+  if [ "$_ubuntu_ver" != "0" ] && [ "$(printf '%s\n' "$_ubuntu_ver" "24.04" | sort -V | head -1)" = "$_ubuntu_ver" ] && [ "$_ubuntu_ver" != "24.04" ]; then
     if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
       info "Adding Vim PPA (system vim too old)..."
       run sudo add-apt-repository -y ppa:jonathonf/vim
@@ -268,7 +268,11 @@ install_ubuntu_packages() {
       run fnm install --lts
     fi
     run fnm use lts-latest
-    ok "Node $(node --version) active via fnm"
+    if command -v node &>/dev/null; then
+      ok "Node $(node --version) active via fnm"
+    else
+      warn "fnm activated but node not yet on PATH"
+    fi
   fi
 
   # git-delta
@@ -318,7 +322,7 @@ install_ubuntu_packages() {
   # yq (GitHub release — not available in apt on Ubuntu < 24.04)
   if ! command -v yq &>/dev/null; then
     info "Installing yq..."
-    run sh -c 'YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r .tag_name) && curl -fsSLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_amd64" && sudo install /tmp/yq /usr/local/bin/yq && rm /tmp/yq'
+    run sh -c 'YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r .tag_name) && YQ_ARCH=$(dpkg --print-architecture) && curl -fsSLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" && sudo install /tmp/yq /usr/local/bin/yq && rm /tmp/yq'
   else
     ok "yq already installed"
   fi

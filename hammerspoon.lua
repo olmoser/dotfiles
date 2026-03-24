@@ -67,8 +67,8 @@ hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "F", function()
 end)
 
 hs.hotkey.bind({"cmd", "alt",  "ctrl"}, "-", function()
-	device = hs.audiodevice.defaultOutputDevice()
-	muted = device:muted()
+	local device = hs.audiodevice.defaultOutputDevice()
+	local muted = device:muted()
 	device:setMuted(not muted)
 end)
 

@@ -22,7 +22,7 @@
 	ca = !git add -A && git commit -av
 
 	# Switch to a branch, creating it if necessary
-	go = "!f() { git checkout -b \"$1\" 2> /dev/null || git checkout \"$1\"; }; f"
+	go = "!f() { git checkout -b \"$1\" 2>/dev/null || git checkout \"$1\"; }; f"
 
 	# Show verbose output about tags, branches or remotes
 	tags = tag -l
@@ -39,16 +39,16 @@
 	reb = "!r() { git rebase -i HEAD~$1; }; r"
 
 	# Find branches containing commit
-	fb = "!f() { git branch -a --contains $1; }; f"
+	fb = "!f() { git branch -a --contains \"$1\"; }; f"
 
 	# Find tags containing commit
-	ft = "!f() { git describe --always --contains $1; }; f"
+	ft = "!f() { git describe --always --contains \"$1\"; }; f"
 
 	# Find commits by source code
-	fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S$1; }; f"
+	fc = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short -S\"$1\"; }; f"
 
 	# Find commits by commit message
-	fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=$1; }; f"
+	fm = "!f() { git log --pretty=format:'%C(yellow)%h  %Cblue%ad  %Creset%s%Cgreen  [%cn] %Cred%d' --decorate --date=short --grep=\"$1\"; }; f"
 
 	# Remove branches that have already been merged with master
 	# a.k.a. ‘delete merged’
@@ -77,8 +77,6 @@
 
 	lc = !"git reflog | head -1 | awk '{print $1}'"
 
-	#ob = !"git branch -v | grep '\[gone\]' | awk '{print $1}'"
-
 
 [apply]
 
@@ -87,8 +85,6 @@
 
 [core]
 
-	# Use custom `.gitignore` and `.gitattributes`
-	#excludesfile = /opt/boxen/config/git/gitignore
 	attributesfile = ~/.gitattributes
 
 	# Treat spaces before tabs and all kinds of trailing whitespace as an error
@@ -135,14 +131,13 @@
 
 	# Detect copies as well as renames
 	renames = copies
-	external = difft
 	tool = difftastic
 
 [difftool]
 	prompt = false
 
 [difftool "difftastic"]
-	cmd = difft "$LOCAL" "$REMOTE"	
+	cmd = difft "$LOCAL" "$REMOTE"
 
 [help]
 
@@ -156,10 +151,7 @@
 
 [push]
 
-	# Use the Git 1.x.x default to avoid errors on machines with old Git
-	# installations. To use `simple` instead, add this to your `~/.extra` file:
-	# `git config --global push.default simple`. See http://git.io/mMah-w.
-	default = matching
+	default = simple
 
 # URL shorthands
 
@@ -187,6 +179,11 @@
 	protocol = https
 
 [user]
+	# Machine-specific: set via ~/.gitconfig.local
+	# (included below so this file stays portable)
+
+[include]
+	path = ~/.gitconfig.local
 
 [filter "lfs"]
 	process = git-lfs filter-process
