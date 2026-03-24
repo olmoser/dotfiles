@@ -426,6 +426,23 @@ import_autojump_history() {
   done
 }
 
+# --- LSP servers (for neovim) ---
+install_lsp_servers() {
+  if ! command -v npm &>/dev/null; then
+    warn "npm not found — skipping LSP server installs"
+    return
+  fi
+
+  for pkg in pyright typescript typescript-language-server; do
+    if npm list -g "$pkg" &>/dev/null; then
+      ok "${pkg} already installed"
+    else
+      info "Installing ${pkg}..."
+      run npm install -g "$pkg"
+    fi
+  done
+}
+
 # --- Claude Code ---
 install_claude_code() {
   if command -v claude &>/dev/null; then
@@ -589,6 +606,10 @@ main() {
   echo ""
   info "=== Importing autojump history ==="
   import_autojump_history
+
+  echo ""
+  info "=== Installing LSP servers ==="
+  install_lsp_servers
 
   echo ""
   info "=== Installing Claude Code ==="
