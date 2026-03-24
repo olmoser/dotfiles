@@ -127,27 +127,21 @@ return {
 		end,
 	},
 
-	-- LSP
+	-- LSP (data-only; configs come from nvim-lspconfig's lsp/ directory)
 	{
 		"neovim/nvim-lspconfig",
 		config = function()
-			local lspconfig = require("lspconfig")
-
-			local servers = {
-				pyright = {},
-				ts_ls = {},
-			}
-
 			local capabilities = vim.lsp.protocol.make_client_capabilities()
 			local cmp_ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
 			if cmp_ok then
 				capabilities = cmp_lsp.default_capabilities(capabilities)
 			end
 
-			for server, opts in pairs(servers) do
-				opts.capabilities = capabilities
-				lspconfig[server].setup(opts)
+			local servers = { "pyright", "ts_ls" }
+			for _, server in ipairs(servers) do
+				vim.lsp.config(server, { capabilities = capabilities })
 			end
+			vim.lsp.enable(servers)
 
 			vim.api.nvim_create_autocmd("LspAttach", {
 				callback = function(args)
