@@ -335,7 +335,7 @@ gwt() {
 
   git worktree add -b "${type}/${name}" "${dest_dir}" "$resolved_base"
   git worktree list
-  for f in .claude .env .devcontainer; do
+  for f in .claude .env .envrc .devcontainer; do
     [ -e "$f" ] && cp -r "$f" "${dest_dir}/" 2>/dev/null
   done
   for f in ./*-sa.json; do
