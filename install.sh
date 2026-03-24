@@ -113,8 +113,8 @@ APT_PACKAGES=(
   btop
   nethogs
   tmux
+  vim
   neovim
-  yq
   zsh-autosuggestions
   zsh-syntax-highlighting
 )
@@ -202,6 +202,15 @@ install_ubuntu_packages() {
     trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null' EXIT
   fi
 
+  # Vim PPA (Ubuntu < 24.04 ships Vim 8.x; need 9.0+ for habamax colorscheme)
+  _ubuntu_ver="$(lsb_release -rs 2>/dev/null || echo "0")"
+  if [ "$_ubuntu_ver" != "0" ] && [ "$(printf '%s\n' "$_ubuntu_ver" "24.04" | sort -V | head -1)" = "$_ubuntu_ver" ] && [ "$_ubuntu_ver" != "24.04" ]; then
+    if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
+      info "Adding Vim PPA (system vim too old)..."
+      run sudo add-apt-repository -y ppa:jonathonf/vim
+    fi
+  fi
+
   info "Updating apt cache..."
   run sudo apt-get update -qq
 
@@ -245,6 +254,25 @@ install_ubuntu_packages() {
   else
     info "Installing fnm..."
     run sh -c 'curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell'
+  fi
+
+  # Activate fnm in the current shell and install Node LTS so that npm/npx
+  # resolve to a user-scoped installation (no sudo needed for global installs)
+  if ! command -v fnm &>/dev/null && [ -x "${HOME}/.local/share/fnm/fnm" ]; then
+    export PATH="${HOME}/.local/share/fnm:${PATH}"
+  fi
+  if command -v fnm &>/dev/null; then
+    eval "$(fnm env)"
+    if ! fnm ls | grep -q lts-latest; then
+      info "Installing Node LTS via fnm..."
+      run fnm install --lts
+    fi
+    run fnm use lts-latest
+    if command -v node &>/dev/null; then
+      ok "Node $(node --version) active via fnm"
+    else
+      warn "fnm activated but node not yet on PATH"
+    fi
   fi
 
   # git-delta
@@ -291,11 +319,16 @@ install_ubuntu_packages() {
   install_cargo_binary_if_missing "jnv" "jnv" \
     "jnv requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
-  # fzf (from git — apt version is too old)
-  if dpkg -l fzf &>/dev/null 2>&1; then
-    info "Removing apt version of fzf (too old)..."
-    run sudo apt-get remove -y -qq fzf
+  # yq (GitHub release — not available in apt on Ubuntu < 24.04)
+  if ! command -v yq &>/dev/null; then
+    info "Installing yq..."
+    run sh -c 'YQ_VERSION=$(curl -fsSL "https://api.github.com/repos/mikefarah/yq/releases/latest" | jq -r .tag_name) && YQ_ARCH=$(dpkg --print-architecture) && curl -fsSLo /tmp/yq "https://github.com/mikefarah/yq/releases/download/${YQ_VERSION}/yq_linux_${YQ_ARCH}" && sudo install /tmp/yq /usr/local/bin/yq && rm /tmp/yq'
+  else
+    ok "yq already installed"
   fi
+
+
+  # fzf (from git — apt version is too old, ~/.fzf/bin takes precedence via .shell_shared)
   if [ ! -d "${HOME}/.fzf" ]; then
     info "Installing fzf from git..."
     run git clone --depth 1 https://github.com/junegunn/fzf.git "${HOME}/.fzf"
@@ -513,12 +546,13 @@ create_symlinks() {
   symlink "${DOTFILES_DIR}/.exports"      "${HOME}/.exports"
   symlink "${DOTFILES_DIR}/.functions"    "${HOME}/.functions"
   symlink "${DOTFILES_DIR}/.vimrc"        "${HOME}/.vimrc"
+  symlink "${DOTFILES_DIR}/.tmux.conf"    "${HOME}/.tmux.conf"
+  symlink "${DOTFILES_DIR}/.gitconfig"   "${HOME}/.gitconfig"
   symlink "${DOTFILES_DIR}/nvim"      "${HOME}/.config/nvim"
   symlink "${STARSHIP_CONFIG}" "${HOME}/.config/starship.toml"
 
-  # Global gitignore
+  # Global gitignore (path configured in .gitconfig via core.excludesfile)
   symlink "${DOTFILES_DIR}/.gitignore_global" "${HOME}/.gitignore_global"
-  run git config --global core.excludesfile "${HOME}/.gitignore_global"
 
   # Platform-dependent config
   case "$OS" in

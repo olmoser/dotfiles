@@ -16,6 +16,21 @@ else
   _shell_kind="bash"
 fi
 
+# ~/bin and ~/.local/bin
+for _p in "${HOME}/bin" "${HOME}/.local/bin"; do
+  [ -d "$_p" ] && case ":${PATH}:" in
+    *":${_p}:"*) ;;
+    *) export PATH="${_p}:${PATH}" ;;
+  esac
+done
+unset _p
+
+# fzf (git install puts binary here — must precede system fzf)
+[ -d "${HOME}/.fzf/bin" ] && case ":${PATH}:" in
+  *":${HOME}/.fzf/bin:"*) ;;
+  *) export PATH="${HOME}/.fzf/bin:${PATH}" ;;
+esac
+
 # Go binaries (go install puts binaries here by default)
 [ -d "${HOME}/go/bin" ] && export PATH="${PATH}:${HOME}/go/bin"
 
