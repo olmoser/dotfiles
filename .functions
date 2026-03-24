@@ -397,7 +397,7 @@ gwj() {
   [ -z "$selected" ] && return 0
 
   local target
-  target="${selected%%  *}"
+  target="$(echo ${selected%%  *} | awk '{print $1}')"
   cd "$target" || return 1
 }
 
