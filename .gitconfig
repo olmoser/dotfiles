@@ -150,7 +150,6 @@
 	log = true
 
 [push]
-
 	default = simple
 
 # URL shorthands
