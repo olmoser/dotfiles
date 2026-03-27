@@ -203,8 +203,8 @@ install_ubuntu_packages() {
   fi
 
   # Vim PPA (Ubuntu < 24.04 ships Vim 8.x; need 9.0+ for habamax colorscheme)
-  _ubuntu_ver="$(lsb_release -rs 2>/dev/null || echo "0")"
-  if [ "$_ubuntu_ver" != "0" ] && [ "$(printf '%s\n' "$_ubuntu_ver" "24.04" | sort -V | head -1)" = "$_ubuntu_ver" ] && [ "$_ubuntu_ver" != "24.04" ]; then
+  _ubuntu_major="$(. /etc/os-release && echo "${VERSION_ID%%.*}")"
+  if [ "${_ubuntu_major:-0}" -lt 24 ]; then
     if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
       info "Adding Vim PPA (system vim too old)..."
       run sudo add-apt-repository -y ppa:jonathonf/vim
