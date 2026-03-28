@@ -203,8 +203,8 @@ install_ubuntu_packages() {
   fi
 
   # Vim PPA (Ubuntu < 24.04 ships Vim 8.x; need 9.0+ for habamax colorscheme)
-  _ubuntu_ver="$(lsb_release -rs 2>/dev/null || echo "0")"
-  if [ "$_ubuntu_ver" != "0" ] && [ "$(printf '%s\n' "$_ubuntu_ver" "24.04" | sort -V | head -1)" = "$_ubuntu_ver" ] && [ "$_ubuntu_ver" != "24.04" ]; then
+  _ubuntu_major="$(. /etc/os-release && echo "${VERSION_ID%%.*}")"
+  if [ "${_ubuntu_major:-0}" -lt 24 ]; then
     if ! grep -q "jonathonf/vim" /etc/apt/sources.list.d/*.list 2>/dev/null; then
       info "Adding Vim PPA (system vim too old)..."
       run sudo add-apt-repository -y ppa:jonathonf/vim
@@ -426,6 +426,23 @@ import_autojump_history() {
   done
 }
 
+# --- LSP servers (for neovim) ---
+install_lsp_servers() {
+  if ! command -v npm &>/dev/null; then
+    warn "npm not found — skipping LSP server installs"
+    return
+  fi
+
+  for pkg in pyright typescript typescript-language-server; do
+    if npm list -g "$pkg" &>/dev/null; then
+      ok "${pkg} already installed"
+    else
+      info "Installing ${pkg}..."
+      run npm install -g "$pkg"
+    fi
+  done
+}
+
 # --- Claude Code ---
 install_claude_code() {
   if command -v claude &>/dev/null; then
@@ -589,6 +606,10 @@ main() {
   echo ""
   info "=== Importing autojump history ==="
   import_autojump_history
+
+  echo ""
+  info "=== Installing LSP servers ==="
+  install_lsp_servers
 
   echo ""
   info "=== Installing Claude Code ==="

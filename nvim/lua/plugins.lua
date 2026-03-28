@@ -55,11 +55,13 @@ return {
 		dependencies = {
 			"hrsh7th/cmp-buffer",
 			"hrsh7th/cmp-path",
+			"hrsh7th/cmp-nvim-lsp",
 		},
 		config = function()
 			local cmp = require("cmp")
 			cmp.setup({
 				sources = cmp.config.sources({
+					{ name = "nvim_lsp" },
 					{ name = "minuet" },
 					{ name = "path" },
 				}, {
@@ -121,6 +123,39 @@ return {
 						model = vim.env.MINUET_OPENAI_MODEL or "codex-mini-latest",
 					},
 				},
+			})
+		end,
+	},
+
+	-- LSP (data-only; configs come from nvim-lspconfig's lsp/ directory)
+	{
+		"neovim/nvim-lspconfig",
+		config = function()
+			local capabilities = vim.lsp.protocol.make_client_capabilities()
+			local cmp_ok, cmp_lsp = pcall(require, "cmp_nvim_lsp")
+			if cmp_ok then
+				capabilities = cmp_lsp.default_capabilities(capabilities)
+			end
+
+			local servers = { "pyright", "ts_ls" }
+			for _, server in ipairs(servers) do
+				vim.lsp.config(server, { capabilities = capabilities })
+			end
+			vim.lsp.enable(servers)
+
+			vim.api.nvim_create_autocmd("LspAttach", {
+				callback = function(args)
+					local buf = args.buf
+					local map = function(keys, fn, desc)
+						vim.keymap.set("n", keys, fn, { buffer = buf, desc = desc })
+					end
+					map("gd", vim.lsp.buf.definition, "Go to definition")
+					map("gr", vim.lsp.buf.references, "References")
+					map("gl", vim.diagnostic.open_float, "Diagnostics")
+					map("K", vim.lsp.buf.hover, "Hover")
+					map("<leader>rn", vim.lsp.buf.rename, "Rename")
+					map("<leader>ca", vim.lsp.buf.code_action, "Code action")
+				end,
 			})
 		end,
 	},
