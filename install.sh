@@ -402,6 +402,13 @@ install_ubuntu_packages() {
     info "Creating bat symlink for batcat..."
     run sudo ln -sf "$(command -v batcat)" /usr/local/bin/bat
   fi
+
+  # tmux bash completion (not packaged on Ubuntu < 24.04)
+  local _tmux_comp="/usr/share/bash-completion/completions/tmux"
+  if command -v tmux &>/dev/null && [ ! -f "$_tmux_comp" ]; then
+    info "Installing tmux bash completion..."
+    run sudo cp "${DOTFILES_DIR}/completions/tmux" "$_tmux_comp"
+  fi
 }
 
 # --- Autojump -> Zoxide migration ---
