@@ -114,7 +114,6 @@ APT_PACKAGES=(
   nethogs
   tmux
   vim
-  neovim
   zsh-autosuggestions
   zsh-syntax-highlighting
 )
@@ -381,6 +380,33 @@ install_ubuntu_packages() {
     run sh -c 'curl -fsSL https://raw.githubusercontent.com/jesseduffield/lazydocker/master/scripts/install_update_linux.sh | bash'
   else
     ok "lazydocker already installed"
+  fi
+
+  # neovim (GitHub release — apt package is outdated or missing on Ubuntu)
+  local _nvim_version="0.12.0"
+  if command -v nvim &>/dev/null; then
+    ok "nvim already installed ($(nvim --version | head -1))"
+  else
+    info "Installing neovim v${_nvim_version} from GitHub release..."
+    local _nvim_arch _nvim_sha256
+    case "$(uname -m)" in
+      x86_64)
+        _nvim_arch="x86_64"
+        _nvim_sha256="160b69125defb16e60b283b69be112fd4850d67ac8f9a752328c20ad43ec34af"
+        ;;
+      aarch64)
+        _nvim_arch="arm64"
+        _nvim_sha256="89024e7be2ef3c8f08e9c002b1eb3e3b36672ee44bd6343cf2d168d38b3736b2"
+        ;;
+      *) err "Unsupported architecture for neovim: $(uname -m)"; return 1 ;;
+    esac
+    local _nvim_tarball="nvim-linux-${_nvim_arch}.tar.gz"
+    local _nvim_url="https://github.com/neovim/neovim/releases/download/v${_nvim_version}/${_nvim_tarball}"
+    run sh -c "curl -fsSLo '/tmp/${_nvim_tarball}' '${_nvim_url}' \
+      && echo '${_nvim_sha256}  /tmp/${_nvim_tarball}' | sha256sum -c - \
+      && sudo tar xzf '/tmp/${_nvim_tarball}' -C /opt \
+      && sudo ln -sf '/opt/nvim-linux-${_nvim_arch}/bin/nvim' /usr/local/bin/nvim \
+      && rm '/tmp/${_nvim_tarball}'"
   fi
 
   # dust
