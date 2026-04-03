@@ -331,7 +331,7 @@ install_ubuntu_packages() {
   # task (Taskfile runner — GitHub release)
   if ! command -v task &>/dev/null; then
     info "Installing task..."
-    run sh -c 'TASK_ARCH=$(dpkg --print-architecture) && curl -fsSL "https://github.com/go-task/task/releases/download/v3.49.1/task_linux_${TASK_ARCH}.tar.gz" | tar -xz -C /usr/local/bin task'
+    run sh -c 'TASK_ARCH=$(dpkg --print-architecture) && curl -fsSL "https://github.com/go-task/task/releases/download/v3.49.1/task_linux_${TASK_ARCH}.tar.gz" | tar -xz -C /tmp task && sudo install /tmp/task /usr/local/bin && rm /tmp/task'
   else
     ok "task already installed"
   fi
