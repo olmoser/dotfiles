@@ -178,6 +178,9 @@
 	protocol = https
 
 [user]
+	name = Oliver Moser
+	email = o@omoser.com
+	signingkey = /Users/omoser/.ssh/github_signing.pub
 	# Machine-specific: set via ~/.gitconfig.local
 	# (included below so this file stays portable)
 
@@ -199,3 +202,9 @@
 [http]
 	postBuffer = 524288000
 
+[gpg]
+	format = ssh
+[commit]
+	gpgsign = true
+[tag]
+	gpgsign = true
