@@ -40,6 +40,9 @@ fi
 # Terraform completion (conditional)
 command -v terraform &>/dev/null && complete -C "$(command -v terraform)" terraform
 
+# Task (Taskfile) completion
+command -v task &>/dev/null && eval "$(task --completion bash)"
+
 # History: flush to file after every command
 # Report CWD to terminal via OSC 7 (enables new tab/split in same directory)
 __report_cwd() {

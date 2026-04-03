@@ -30,6 +30,9 @@ autoload -Uz compinit && compinit
 # kubectl completion
 command -v kubectl &>/dev/null && source <(kubectl completion zsh)
 
+# Task (Taskfile) completion
+command -v task &>/dev/null && eval "$(task --completion zsh)"
+
 # gcloud completion
 if command -v brew &>/dev/null; then
   local gcloud_inc="$(brew --prefix)/share/google-cloud-sdk/completion.zsh.inc"

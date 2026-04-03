@@ -77,6 +77,7 @@ BREW_PACKAGES=(
   fnm       # fast Node manager
   gh        # GitHub CLI
   git-delta
+  go-task   # Taskfile runner
   shellcheck
   btop
   kubectl
@@ -326,6 +327,14 @@ install_ubuntu_packages() {
     ok "yq already installed"
   fi
 
+
+  # task (Taskfile runner — GitHub release)
+  if ! command -v task &>/dev/null; then
+    info "Installing task..."
+    run sh -c 'TASK_ARCH=$(dpkg --print-architecture) && curl -fsSL "https://github.com/go-task/task/releases/download/v3.49.1/task_linux_${TASK_ARCH}.tar.gz" | tar -xz -C /usr/local/bin task'
+  else
+    ok "task already installed"
+  fi
 
   # fzf (from git — apt version is too old, ~/.fzf/bin takes precedence via .shell_shared)
   if [ ! -d "${HOME}/.fzf" ]; then
