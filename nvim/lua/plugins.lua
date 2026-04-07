@@ -118,7 +118,7 @@ return {
 				capabilities = cmp_lsp.default_capabilities(capabilities)
 			end
 
-			local servers = { "basedpyright", "ruff", "ts_ls" }
+			local servers = { "basedpyright", "ruff", "ts_ls", "denols" }
 			for _, server in ipairs(servers) do
 				vim.lsp.config(server, { capabilities = capabilities })
 			end

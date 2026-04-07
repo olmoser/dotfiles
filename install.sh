@@ -77,6 +77,7 @@ BREW_PACKAGES=(
   fnm       # fast Node manager
   gh        # GitHub CLI
   git-delta
+  deno
   go-task   # Taskfile runner
   shellcheck
   btop
@@ -328,6 +329,14 @@ install_ubuntu_packages() {
   fi
 
 
+  # deno
+  if ! command -v deno &>/dev/null; then
+    info "Installing deno..."
+    run sh -c 'curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh'
+  else
+    ok "deno already installed"
+  fi
+
   # task (Taskfile runner — GitHub release)
   if ! command -v task &>/dev/null; then
     info "Installing task..."
@@ -470,19 +479,31 @@ import_autojump_history() {
 
 # --- LSP servers (for neovim) ---
 install_lsp_servers() {
-  if ! command -v npm &>/dev/null; then
-    warn "npm not found — skipping LSP server installs"
-    return
+  # basedpyright (Python LSP — installed via uv to avoid npm/brew conflicts)
+  if command -v uv &>/dev/null; then
+    if command -v basedpyright &>/dev/null; then
+      ok "basedpyright already installed"
+    else
+      info "Installing basedpyright..."
+      run uv tool install basedpyright
+    fi
+  else
+    warn "uv not found — skipping basedpyright install"
   fi
 
-  for pkg in pyright typescript typescript-language-server; do
-    if npm list -g "$pkg" &>/dev/null; then
-      ok "${pkg} already installed"
-    else
-      info "Installing ${pkg}..."
-      run npm install -g "$pkg"
-    fi
-  done
+  # TypeScript LSP (requires npm)
+  if command -v npm &>/dev/null; then
+    for pkg in typescript typescript-language-server; do
+      if npm list -g "$pkg" &>/dev/null; then
+        ok "${pkg} already installed"
+      else
+        info "Installing ${pkg}..."
+        run npm install -g "$pkg"
+      fi
+    done
+  else
+    warn "npm not found — skipping TypeScript LSP server installs"
+  fi
 }
 
 # --- Claude Code ---
