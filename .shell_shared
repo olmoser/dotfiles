@@ -70,6 +70,11 @@ if command -v sk &>/dev/null; then
   unset sk_bindings _skim_ext
 fi
 
+# ssh-agent (Linux only — macOS uses the system keychain)
+if [[ "$(uname -s)" == "Linux" ]] && [ -z "${SSH_AUTH_SOCK:-}" ]; then
+  eval "$(ssh-agent -s)" >/dev/null
+fi
+
 # direnv (must be last — needs to wrap all other prompt hooks)
 command -v direnv &>/dev/null && eval "$(direnv hook "${_shell_kind}")"
 
