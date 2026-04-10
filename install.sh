@@ -102,7 +102,6 @@ BREW_PACKAGES=(
 BREW_CASKS=(
   hammerspoon
   rectangle
-  google-cloud-sdk
 )
 
 APT_PACKAGES=(
@@ -376,14 +375,6 @@ install_ubuntu_packages() {
   install_cargo_binary_if_missing "difft" "difftastic" \
     "difftastic requires cargo. Install Rust first: curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
 
-  # Google Cloud SDK
-  if command -v gcloud &>/dev/null || [ -d "${HOME}/google-cloud-sdk" ]; then
-    ok "gcloud already installed"
-  else
-    info "Installing Google Cloud SDK..."
-    run sh -c 'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts'
-  fi
-
   # lazygit
   if ! command -v lazygit &>/dev/null; then
     info "Installing lazygit..."
@@ -506,6 +497,16 @@ install_lsp_servers() {
   fi
 }
 
+# --- prek (git hooks runner) ---
+install_prek() {
+  if command -v prek &>/dev/null; then
+    ok "prek already installed"
+    return
+  fi
+  info "Installing prek..."
+  run sh -c 'curl -fsSL "https://github.com/j178/prek/releases/download/v0.3.8/prek-installer.sh" | INSTALLER_NO_MODIFY_PATH=1 sh -s -- --install-dir /usr/local/bin'
+}
+
 # --- Claude Code ---
 install_claude_code() {
   if command -v claude &>/dev/null; then
@@ -541,6 +542,81 @@ install_btop_theme() {
 }
 
 # --- Starship theme selection ---
+# --- Cloud CLIs (optional) ---
+install_cloud_clis() {
+  local choices=()
+
+  if [ -n "${CLOUD_CLIS:-}" ]; then
+    IFS=',' read -ra choices <<< "$CLOUD_CLIS"
+  elif [ "$DRY_RUN" = "true" ]; then
+    info "[DRY RUN] Would prompt for cloud CLI selection"
+    return
+  elif [ ! -t 0 ] || [ ! -t 1 ]; then
+    info "Non-interactive shell detected; skipping cloud CLI selection"
+    return
+  else
+    echo ""
+    info "Select cloud CLIs to install (comma-separated, or 'none'):"
+    echo "  1) gcloud  — Google Cloud SDK"
+    echo "  2) aws     — AWS CLI v2"
+    echo "  3) azure   — Azure CLI"
+    echo ""
+    read -rp "Choice (e.g. 1,2 or 'none') [none]: " input
+    input="${input:-none}"
+    if [[ "$input" == "none" ]]; then
+      return
+    fi
+    IFS=',' read -ra picks <<< "$input"
+    for pick in "${picks[@]}"; do
+      pick="$(echo "$pick" | tr -d ' ')"
+      case "$pick" in
+        1|gcloud) choices+=("gcloud") ;;
+        2|aws)    choices+=("aws") ;;
+        3|azure)  choices+=("azure") ;;
+        *) warn "Unknown choice: $pick" ;;
+      esac
+    done
+  fi
+
+  for cli in "${choices[@]}"; do
+    case "$cli" in
+      gcloud)
+        if command -v gcloud &>/dev/null; then
+          ok "gcloud already installed"
+        elif [[ "$OS" == "macos" ]]; then
+          info "Installing google-cloud-sdk (brew cask)..."
+          run brew install --cask google-cloud-sdk
+        else
+          info "Installing Google Cloud SDK..."
+          run sh -c 'curl -fsSL https://sdk.cloud.google.com | bash -s -- --disable-prompts'
+        fi
+        ;;
+      aws)
+        if command -v aws &>/dev/null; then
+          ok "aws-cli already installed"
+        elif [[ "$OS" == "macos" ]]; then
+          info "Installing awscli (brew)..."
+          run brew install awscli
+        else
+          info "Installing AWS CLI v2..."
+          run sh -c 'curl -fsSL "https://awscli.amazonaws.com/awscli-exe-linux-$(uname -m).zip" -o /tmp/awscli.zip && unzip -qo /tmp/awscli.zip -d /tmp && sudo /tmp/aws/install && rm -rf /tmp/aws /tmp/awscli.zip'
+        fi
+        ;;
+      azure)
+        if command -v az &>/dev/null; then
+          ok "azure-cli already installed"
+        elif [[ "$OS" == "macos" ]]; then
+          info "Installing azure-cli (brew)..."
+          run brew install azure-cli
+        else
+          info "Installing Azure CLI..."
+          run sh -c 'curl -fsSL https://aka.ms/InstallAzureCLIDeb | sudo bash'
+        fi
+        ;;
+    esac
+  done
+}
+
 select_starship_theme() {
   local gruvbox="${DOTFILES_DIR}/starship.toml"
   local simple="${DOTFILES_DIR}/starship-simple.toml"
@@ -675,12 +751,20 @@ main() {
   install_lsp_servers
 
   echo ""
+  info "=== Installing prek ==="
+  install_prek
+
+  echo ""
   info "=== Installing Claude Code ==="
   install_claude_code
 
   echo ""
   info "=== Installing btop theme ==="
   install_btop_theme
+
+  echo ""
+  info "=== Cloud CLIs ==="
+  install_cloud_clis
 
   echo ""
   info "=== Starship theme ==="
