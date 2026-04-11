@@ -113,7 +113,6 @@ APT_PACKAGES=(
   shellcheck
   btop
   nethogs
-  tmux
   vim
   zsh-autosuggestions
   zsh-syntax-highlighting
@@ -391,6 +390,23 @@ install_ubuntu_packages() {
     ok "lazydocker already installed"
   fi
 
+  # tmux (build from source — apt package is too old)
+  local _tmux_version="3.6a"
+  if tmux -V 2>/dev/null | grep -q "${_tmux_version}"; then
+    ok "tmux ${_tmux_version} already installed"
+  else
+    info "Building tmux ${_tmux_version} from source..."
+    run sudo apt-get install -y -qq libevent-dev ncurses-dev build-essential bison pkg-config
+    run sh -c "trap 'rm -rf /tmp/tmux-${_tmux_version} /tmp/tmux-${_tmux_version}.tar.gz' EXIT; \
+      curl -fsSLo /tmp/tmux-${_tmux_version}.tar.gz \
+      'https://github.com/tmux/tmux/releases/download/${_tmux_version}/tmux-${_tmux_version}.tar.gz' \
+      && tar xzf /tmp/tmux-${_tmux_version}.tar.gz -C /tmp \
+      && cd /tmp/tmux-${_tmux_version} \
+      && ./configure --prefix=/usr/local \
+      && make -j\"\$(nproc)\" \
+      && sudo make install"
+  fi
+
   # neovim (GitHub release — apt package is outdated or missing on Ubuntu)
   local _nvim_version="0.12.0"
   if command -v nvim &>/dev/null; then
@@ -495,6 +511,17 @@ install_lsp_servers() {
   else
     warn "npm not found — skipping TypeScript LSP server installs"
   fi
+}
+
+# --- tmux plugin manager (tpm) ---
+install_tpm() {
+  local tpm_dir="${HOME}/.tmux/plugins/tpm"
+  if [ -d "$tpm_dir" ]; then
+    ok "tpm already installed"
+    return
+  fi
+  info "Installing tpm..."
+  run git clone --depth 1 https://github.com/tmux-plugins/tpm "$tpm_dir"
 }
 
 # --- prek (git hooks runner) ---
@@ -749,6 +776,10 @@ main() {
   echo ""
   info "=== Installing LSP servers ==="
   install_lsp_servers
+
+  echo ""
+  info "=== Installing tpm ==="
+  install_tpm
 
   echo ""
   info "=== Installing prek ==="
