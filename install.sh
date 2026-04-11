@@ -330,7 +330,7 @@ install_ubuntu_packages() {
   # deno
   if ! command -v deno &>/dev/null; then
     info "Installing deno..."
-    run sh -c 'curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh'
+    run sh -c 'curl -fsSL https://deno.land/install.sh | sudo DENO_INSTALL=/usr/local sh'
   else
     ok "deno already installed"
   fi
@@ -531,7 +531,7 @@ install_prek() {
     return
   fi
   info "Installing prek..."
-  run sh -c 'curl -fsSL "https://github.com/j178/prek/releases/download/v0.3.8/prek-installer.sh" | INSTALLER_NO_MODIFY_PATH=1 sh -s -- --install-dir /usr/local/bin'
+  run sh -c 'curl -fsSL "https://github.com/j178/prek/releases/download/v0.3.8/prek-installer.sh" | PREK_NO_MODIFY_PATH=1 PREK_INSTALL_DIR=/usr/local/bin sh'
 }
 
 # --- Claude Code ---
