@@ -531,7 +531,8 @@ install_prek() {
     return
   fi
   info "Installing prek..."
-  run sh -c 'curl -fsSL "https://github.com/j178/prek/releases/download/v0.3.8/prek-installer.sh" | PREK_NO_MODIFY_PATH=1 PREK_INSTALL_DIR=/usr/local/bin sh'
+  mkdir -p "$HOME/.local/bin"
+  run sh -c 'curl -fsSL "https://github.com/j178/prek/releases/download/v0.3.8/prek-installer.sh" | PREK_NO_MODIFY_PATH=1 PREK_INSTALL_DIR="$HOME/.local/bin" sh'
 }
 
 # --- Claude Code ---
