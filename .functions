@@ -413,3 +413,9 @@ gwr() {
     return 1
   fi
 }
+
+# fzf based tmux session switching
+function tss() {
+  session=$(tmux list-windows -a | fzf | sed 's/: .*//g')
+  tmux switch-client -t "$session"
+}
