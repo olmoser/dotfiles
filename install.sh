@@ -261,7 +261,7 @@ install_ubuntu_packages() {
     export PATH="${HOME}/.local/share/fnm:${PATH}"
   fi
   if command -v fnm &>/dev/null; then
-    eval "$(fnm env)"
+    eval "$(fnm env --use-on-cd --version-file-strategy=recursive)"
     if ! fnm ls | grep -q lts-latest; then
       info "Installing Node LTS via fnm..."
       run fnm install --lts
