@@ -150,6 +150,7 @@
 	log = true
 
 [push]
+	autoSetupRemote = true
 	default = simple
 
 # URL shorthands
@@ -180,7 +181,7 @@
 [user]
 	name = Oliver Moser
 	email = o@omoser.com
-	signingkey = /Users/omoser/.ssh/github_signing.pub
+	signingkey = ~/.ssh/github_signing.pub
 	# Machine-specific: set via ~/.gitconfig.local
 	# (included below so this file stays portable)
 
