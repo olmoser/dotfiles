@@ -401,13 +401,25 @@ gwj() {
 	cd "$target" || return 1
 }
 
-# Git worktree helper: remove a worktree
+# Git worktree helper: remove a worktree (fzf picker when no arg given)
 gwr() {
-	local name="$1"
-	printf "Delete worktree %s? [y/N] " "$name"
+	if ! command -v fzf &>/dev/null; then
+		echo "gwr requires fzf" >&2
+		return 1
+	fi
+
+	local target="$1"
+	if [[ -z "$target" ]]; then
+		local selected
+		selected=$(git worktree list | fzf --prompt="remove worktree> " --height=~40% --reverse)
+		[ -z "$selected" ] && return 0
+		target="$(echo "$selected" | awk '{print $1}')"
+	fi
+
+	printf "Delete worktree %s? [y/N] " "$target"
 	read -r confirm
 	if [[ "${confirm}" =~ ^[Yy]$ ]]; then
-		git worktree remove "$name"
+		git worktree remove "$target"
 	else
 		echo "Aborting."
 		return 1
